@@ -1,6 +1,11 @@
 import SwiftUI
 import SwiftData
 
+enum ActiveCountField: Hashable {
+    case completed(UUID)
+    case estimated(UUID)
+}
+
 /// Interactive todo checklist supporting Pomodoro estimates, target focus, and status toggle.
 struct TaskListView: View {
     @Bindable var engine: TimerEngine
@@ -14,6 +19,10 @@ struct TaskListView: View {
     @State private var editingTaskId: UUID? = nil
     @State private var editingTitle: String = ""
     @FocusState private var isTextFieldFocused: Bool
+
+    @State private var activeCountField: ActiveCountField? = nil
+    @State private var tempCountText: String = ""
+    @FocusState private var isCountFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -70,6 +79,18 @@ struct TaskListView: View {
                 }
             }
         }
+        .onChange(of: isCountFieldFocused) { focused in
+            if !focused {
+                if let field = activeCountField {
+                    switch field {
+                    case .completed(let id), .estimated(let id):
+                        if let task = tasks.first(where: { $0.id == id }) {
+                            saveCountEditing(task)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Task Row View
@@ -115,22 +136,14 @@ struct TaskListView: View {
                         }
                     }
                 } label: {
-                    HStack {
-                        Text(task.title)
-                            .font(.system(size: 13, weight: isActive ? .semibold : .regular))
-                            .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                            .strikethrough(task.isCompleted)
-                            .lineLimit(1)
-                            .multilineTextAlignment(.leading)
-
-                        Spacer()
-
-                        // Pomodoro progress (completed / estimated)
-                        Text("(\(task.completedPomos)/\(task.estimatedPomos))")
-                            .font(.system(size: 11, weight: .medium).monospacedDigit())
-                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-                    }
-                    .contentShape(Rectangle())
+                    Text(task.title)
+                        .font(.system(size: 13, weight: isActive ? .semibold : .regular))
+                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                        .strikethrough(task.isCompleted)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(task.isCompleted)
@@ -139,6 +152,81 @@ struct TaskListView: View {
                         startEditing(task)
                     }
                 }
+            }
+
+            Spacer()
+
+            // Pomodoro progress (completed / estimated input fields)
+            HStack(spacing: 2) {
+                Text("(")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+
+                // Completed/Done Count
+                if case .completed(let taskId) = activeCountField, taskId == task.id {
+                    TextField("", text: $tempCountText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 14)
+                        .multilineTextAlignment(.center)
+                        .focused($isCountFieldFocused)
+                        .onSubmit {
+                            saveCountEditing(task)
+                        }
+                        .onExitCommand {
+                            cancelCountEditing()
+                        }
+                } else {
+                    Button {
+                        if !task.isCompleted {
+                            startCountEditing(task, field: .completed(task.id))
+                        }
+                    } label: {
+                        Text("\(task.completedPomos)")
+                            .font(.system(size: 11, weight: .medium).monospacedDigit())
+                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(task.isCompleted)
+                }
+
+                Text("/")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+
+                // Estimated Count
+                if case .estimated(let taskId) = activeCountField, taskId == task.id {
+                    TextField("", text: $tempCountText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 14)
+                        .multilineTextAlignment(.center)
+                        .focused($isCountFieldFocused)
+                        .onSubmit {
+                            saveCountEditing(task)
+                        }
+                        .onExitCommand {
+                            cancelCountEditing()
+                        }
+                } else {
+                    Button {
+                        if !task.isCompleted {
+                            startCountEditing(task, field: .estimated(task.id))
+                        }
+                    } label: {
+                        Text("\(task.estimatedPomos)")
+                            .font(.system(size: 11, weight: .medium).monospacedDigit())
+                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(task.isCompleted)
+                }
+
+                Text(")")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
             }
 
             // Delete button (revealed dynamically on hover)
@@ -389,5 +477,42 @@ struct TaskListView: View {
 
     private func cancelEditing() {
         editingTaskId = nil
+    }
+
+    // MARK: - Completed / Estimated Count Inline Editing Actions
+
+    private func startCountEditing(_ task: TaskItem, field: ActiveCountField) {
+        activeCountField = field
+        switch field {
+        case .completed:
+            tempCountText = "\(task.completedPomos)"
+        case .estimated:
+            tempCountText = "\(task.estimatedPomos)"
+        }
+        isCountFieldFocused = true
+    }
+
+    private func saveCountEditing(_ task: TaskItem) {
+        guard let field = activeCountField else { return }
+        let trimmed = tempCountText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let parsed = Int(trimmed) {
+            switch field {
+            case .completed:
+                if parsed >= 0 {
+                    task.completedPomos = parsed
+                    try? modelContext.save()
+                }
+            case .estimated:
+                if parsed >= 1 {
+                    task.estimatedPomos = parsed
+                    try? modelContext.save()
+                }
+            }
+        }
+        activeCountField = nil
+    }
+
+    private func cancelCountEditing() {
+        activeCountField = nil
     }
 }
