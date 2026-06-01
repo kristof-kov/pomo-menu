@@ -19,7 +19,8 @@ struct PopoverRootView: View {
             // 2. Large centered countdown & control actions
             VStack(spacing: 10) {
                 Text(engine.formattedTime)
-                    .font(.system(size: 44, weight: .regular, design: .monospaced))
+                    .font(.system(size: 44, weight: .regular))
+                    .monospacedDigit()
                     .foregroundStyle(.primary)
                     .contentTransition(.numericText(countsDown: true))
 
@@ -50,11 +51,17 @@ struct PopoverRootView: View {
             // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
             TaskListView(engine: engine)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
+
+            // 4. Collapsible Session History (collapses/expands dynamically)
+            SessionHistoryView()
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
 
             Divider()
 
-            // 4. Anchored footer controls row
+            // 5. Anchored footer controls row
             footerSection
         }
         .frame(width: 280)

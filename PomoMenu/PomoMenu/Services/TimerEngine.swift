@@ -88,6 +88,10 @@ final class TimerEngine {
         // no cycle counter increment. Just move directly to the next interval.
         advanceToNextSession()
         state = .idle
+        
+        if settings.autoStart {
+            start()
+        }
     }
 
     func reset() {

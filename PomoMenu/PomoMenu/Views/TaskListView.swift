@@ -1,6 +1,11 @@
 import SwiftUI
 import SwiftData
 
+enum ActiveCountField: Hashable {
+    case completed(UUID)
+    case estimated(UUID)
+}
+
 /// Interactive todo checklist supporting Pomodoro estimates, target focus, and status toggle.
 struct TaskListView: View {
     @Bindable var engine: TimerEngine
@@ -10,6 +15,14 @@ struct TaskListView: View {
     @State private var isAddingTask = false
     @State private var newTaskTitle = ""
     @State private var newTaskEstPomos = 1
+    @State private var hoveredTaskId: UUID? = nil
+    @State private var editingTaskId: UUID? = nil
+    @State private var editingTitle: String = ""
+    @FocusState private var isTextFieldFocused: Bool
+
+    @State private var activeCountField: ActiveCountField? = nil
+    @State private var tempCountText: String = ""
+    @FocusState private var isCountFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -59,6 +72,25 @@ struct TaskListView: View {
                 .buttonStyle(.plain)
             }
         }
+        .onChange(of: isTextFieldFocused) { focused in
+            if !focused {
+                if let id = editingTaskId, let task = tasks.first(where: { $0.id == id }) {
+                    saveEditing(task)
+                }
+            }
+        }
+        .onChange(of: isCountFieldFocused) { focused in
+            if !focused {
+                if let field = activeCountField {
+                    switch field {
+                    case .completed(let id), .estimated(let id):
+                        if let task = tasks.first(where: { $0.id == id }) {
+                            saveCountEditing(task)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Task Row View
@@ -70,12 +102,7 @@ struct TaskListView: View {
         HStack(spacing: 8) {
             // Checkbox
             Button {
-                task.isCompleted.toggle()
-                if task.isCompleted && engine.activeTaskId == task.id {
-                    engine.activeTaskId = nil
-                    engine.currentObjective = ""
-                }
-                try? modelContext.save()
+                toggleTaskCompletion(task)
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 14))
@@ -83,47 +110,137 @@ struct TaskListView: View {
             }
             .buttonStyle(.plain)
 
-            // Task title button (tap to activate / focus)
-            Button {
-                if !task.isCompleted {
-                    engine.activeTaskId = task.id
-                    engine.currentObjective = task.title
-                }
-            } label: {
-                HStack {
+            // Task title area: Editable TextField if in editing mode, else standard interactive Button
+            if editingTaskId == task.id {
+                TextField("", text: $editingTitle)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13, weight: isActive ? .semibold : .regular))
+                    .foregroundStyle(.primary)
+                    .focused($isTextFieldFocused)
+                    .onSubmit {
+                        saveEditing(task)
+                    }
+                    .onExitCommand {
+                        cancelEditing()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Button {
+                    if !task.isCompleted {
+                        if engine.activeTaskId == task.id {
+                            // Selected task clicked again -> Enter inline editing
+                            startEditing(task)
+                        } else {
+                            engine.activeTaskId = task.id
+                            engine.currentObjective = task.title
+                        }
+                    }
+                } label: {
                     Text(task.title)
                         .font(.system(size: 13, weight: isActive ? .semibold : .regular))
                         .foregroundStyle(task.isCompleted ? .secondary : .primary)
                         .strikethrough(task.isCompleted)
                         .lineLimit(1)
                         .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(task.isCompleted)
+                .onTapGesture(count: 2) {
+                    if !task.isCompleted {
+                        startEditing(task)
+                    }
+                }
+            }
 
-                    Spacer()
+            Spacer()
 
-                    // Pomodoro progress (completed / estimated)
-                    Text("(\(task.completedPomos)/\(task.estimatedPomos))")
+            // Pomodoro progress (completed / estimated input badge with standardized size)
+            HStack(spacing: 3) {
+                // Completed/Done Count
+                if case .completed(let taskId) = activeCountField, taskId == task.id {
+                    TextField("", text: $tempCountText)
+                        .textFieldStyle(.plain)
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
                         .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .multilineTextAlignment(.center)
+                        .focused($isCountFieldFocused)
+                        .onSubmit {
+                            saveCountEditing(task)
+                        }
+                        .onExitCommand {
+                            cancelCountEditing()
+                        }
+                        .frame(width: 16, height: 16, alignment: .center)
+                } else {
+                    Text("\(task.completedPomos)")
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if !task.isCompleted {
+                                startCountEditing(task, field: .completed(task.id))
+                            }
+                        }
                 }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .disabled(task.isCompleted)
 
-            // Delete button
-            Button {
-                if engine.activeTaskId == task.id {
-                    engine.activeTaskId = nil
-                    engine.currentObjective = ""
+                Text("/")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary.opacity(0.6))
+                    .frame(height: 16)
+
+                // Estimated Count
+                if case .estimated(let taskId) = activeCountField, taskId == task.id {
+                    TextField("", text: $tempCountText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .multilineTextAlignment(.center)
+                        .focused($isCountFieldFocused)
+                        .onSubmit {
+                            saveCountEditing(task)
+                        }
+                        .onExitCommand {
+                            cancelCountEditing()
+                        }
+                        .frame(width: 16, height: 16, alignment: .center)
+                } else {
+                    Text("\(task.estimatedPomos)")
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if !task.isCompleted {
+                                startCountEditing(task, field: .estimated(task.id))
+                            }
+                        }
                 }
-                modelContext.delete(task)
-                try? modelContext.save()
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(
+                Color.primary.opacity(0.04),
+                in: RoundedRectangle(cornerRadius: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+            )
+
+            // Delete button (revealed dynamically on hover)
+            Button {
+                deleteTask(task)
             } label: {
                 Image(systemName: "trash")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
+            .opacity(hoveredTaskId == task.id ? 1.0 : 0.0)
+            .disabled(hoveredTaskId != task.id)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
@@ -135,6 +252,66 @@ struct TaskListView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(isActive ? SessionType.work.color.opacity(0.18) : Color.clear, lineWidth: 1)
         )
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                hoveredTaskId = hovering ? task.id : nil
+            }
+        }
+        .contextMenu {
+            Button {
+                toggleTaskCompletion(task)
+            } label: {
+                Label(task.isCompleted ? "Mark Incomplete" : "Mark Complete", systemImage: task.isCompleted ? "circle" : "checkmark.circle")
+            }
+
+            Button {
+                startEditing(task)
+            } label: {
+                Label("Rename Task", systemImage: "pencil")
+            }
+
+            Button {
+                resetTaskProgress(task)
+            } label: {
+                Label("Reset Progress", systemImage: "arrow.counterclockwise")
+            }
+
+            Menu("Completed Pomos (\(task.completedPomos))") {
+                Button("+1 Done") {
+                    adjustCompletedPomos(task, by: 1)
+                }
+                Button("-1 Done") {
+                    adjustCompletedPomos(task, by: -1)
+                }
+            }
+
+            Menu("Estimated Pomos (\(task.estimatedPomos))") {
+                Button("+1 Est") {
+                    adjustEstimatedPomos(task, by: 1)
+                }
+                Button("-1 Est") {
+                    adjustEstimatedPomos(task, by: -1)
+                }
+            }
+
+            if !task.isCompleted {
+                Button {
+                    engine.activeTaskId = task.id
+                    engine.currentObjective = task.title
+                } label: {
+                    Label("Focus on Task", systemImage: "target")
+                }
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                deleteTask(task)
+            } label: {
+                Label("Delete Task", systemImage: "trash")
+            }
+        }
     }
 
     // MARK: - Add Task Form
@@ -236,5 +413,107 @@ struct TaskListView: View {
                 .padding(.vertical, 4)
             Spacer()
         }
+    }
+
+    // MARK: - Task Row Secondary Actions
+
+    private func toggleTaskCompletion(_ task: TaskItem) {
+        task.isCompleted.toggle()
+        if task.isCompleted && engine.activeTaskId == task.id {
+            engine.activeTaskId = nil
+            engine.currentObjective = ""
+        }
+        try? modelContext.save()
+    }
+
+    private func resetTaskProgress(_ task: TaskItem) {
+        task.completedPomos = 0
+        try? modelContext.save()
+    }
+
+    private func deleteTask(_ task: TaskItem) {
+        if engine.activeTaskId == task.id {
+            engine.activeTaskId = nil
+            engine.currentObjective = ""
+        }
+        modelContext.delete(task)
+        try? modelContext.save()
+    }
+
+    private func adjustCompletedPomos(_ task: TaskItem, by amount: Int) {
+        let newCount = task.completedPomos + amount
+        if newCount >= 0 {
+            task.completedPomos = newCount
+            try? modelContext.save()
+        }
+    }
+
+    private func adjustEstimatedPomos(_ task: TaskItem, by amount: Int) {
+        let newCount = task.estimatedPomos + amount
+        if newCount >= 1 {
+            task.estimatedPomos = newCount
+            try? modelContext.save()
+        }
+    }
+
+    // MARK: - Inline Editing Actions
+
+    private func startEditing(_ task: TaskItem) {
+        editingTaskId = task.id
+        editingTitle = task.title
+        isTextFieldFocused = true
+    }
+
+    private func saveEditing(_ task: TaskItem) {
+        let trimmed = editingTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            task.title = trimmed
+            if engine.activeTaskId == task.id {
+                engine.currentObjective = trimmed
+            }
+            try? modelContext.save()
+        }
+        editingTaskId = nil
+    }
+
+    private func cancelEditing() {
+        editingTaskId = nil
+    }
+
+    // MARK: - Completed / Estimated Count Inline Editing Actions
+
+    private func startCountEditing(_ task: TaskItem, field: ActiveCountField) {
+        activeCountField = field
+        switch field {
+        case .completed:
+            tempCountText = "\(task.completedPomos)"
+        case .estimated:
+            tempCountText = "\(task.estimatedPomos)"
+        }
+        isCountFieldFocused = true
+    }
+
+    private func saveCountEditing(_ task: TaskItem) {
+        guard let field = activeCountField else { return }
+        let trimmed = tempCountText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let parsed = Int(trimmed) {
+            switch field {
+            case .completed:
+                if parsed >= 0 {
+                    task.completedPomos = parsed
+                    try? modelContext.save()
+                }
+            case .estimated:
+                if parsed >= 1 {
+                    task.estimatedPomos = parsed
+                    try? modelContext.save()
+                }
+            }
+        }
+        activeCountField = nil
+    }
+
+    private func cancelCountEditing() {
+        activeCountField = nil
     }
 }
