@@ -40,6 +40,12 @@ struct PomoMenuApp: App {
             MenuBarLabel(engine: engine, settings: settings)
         }
         .menuBarExtraStyle(.window)
+
+        Window("Statistics", id: "stats") {
+            StatsView()
+                .modelContainer(sharedModelContainer)
+        }
+        .windowResizability(.contentSize)
     }
 }
 

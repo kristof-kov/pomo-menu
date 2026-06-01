@@ -5,7 +5,7 @@ import SwiftUI
 struct PopoverRootView: View {
     @Bindable var engine: TimerEngine
     @Bindable var settings: AppSettings
-    @State private var showStats = false
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 0) {
@@ -33,9 +33,6 @@ struct PopoverRootView: View {
         }
         .frame(width: 300, height: 520)
         .background(.regularMaterial)
-        .sheet(isPresented: $showStats) {
-            StatsView()
-        }
     }
 
 
@@ -55,7 +52,7 @@ struct PopoverRootView: View {
             Spacer()
 
             // Stats button
-            Button { showStats = true } label: {
+            Button { openWindow(id: "stats") } label: {
                 Image(systemName: "chart.bar")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
