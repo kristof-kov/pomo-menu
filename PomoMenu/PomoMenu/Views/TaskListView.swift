@@ -11,6 +11,9 @@ struct TaskListView: View {
     @State private var newTaskTitle = ""
     @State private var newTaskEstPomos = 1
     @State private var hoveredTaskId: UUID? = nil
+    @State private var editingTaskId: UUID? = nil
+    @State private var editingTitle: String = ""
+    @FocusState private var isTextFieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -60,6 +63,13 @@ struct TaskListView: View {
                 .buttonStyle(.plain)
             }
         }
+        .onChange(of: isTextFieldFocused) { focused in
+            if !focused {
+                if let id = editingTaskId, let task = tasks.first(where: { $0.id == id }) {
+                    saveEditing(task)
+                }
+            }
+        }
     }
 
     // MARK: - Task Row View
@@ -79,32 +89,57 @@ struct TaskListView: View {
             }
             .buttonStyle(.plain)
 
-            // Task title button (tap to activate / focus)
-            Button {
-                if !task.isCompleted {
-                    engine.activeTaskId = task.id
-                    engine.currentObjective = task.title
-                }
-            } label: {
-                HStack {
-                    Text(task.title)
-                        .font(.system(size: 13, weight: isActive ? .semibold : .regular))
-                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                        .strikethrough(task.isCompleted)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.leading)
+            // Task title area: Editable TextField if in editing mode, else standard interactive Button
+            if editingTaskId == task.id {
+                TextField("", text: $editingTitle)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13, weight: isActive ? .semibold : .regular))
+                    .foregroundStyle(.primary)
+                    .focused($isTextFieldFocused)
+                    .onSubmit {
+                        saveEditing(task)
+                    }
+                    .onExitCommand {
+                        cancelEditing()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                Button {
+                    if !task.isCompleted {
+                        if engine.activeTaskId == task.id {
+                            // Selected task clicked again -> Enter inline editing
+                            startEditing(task)
+                        } else {
+                            engine.activeTaskId = task.id
+                            engine.currentObjective = task.title
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(task.title)
+                            .font(.system(size: 13, weight: isActive ? .semibold : .regular))
+                            .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                            .strikethrough(task.isCompleted)
+                            .lineLimit(1)
+                            .multilineTextAlignment(.leading)
 
-                    Spacer()
+                        Spacer()
 
-                    // Pomodoro progress (completed / estimated)
-                    Text("(\(task.completedPomos)/\(task.estimatedPomos))")
-                        .font(.system(size: 11, weight: .medium).monospacedDigit())
-                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        // Pomodoro progress (completed / estimated)
+                        Text("(\(task.completedPomos)/\(task.estimatedPomos))")
+                            .font(.system(size: 11, weight: .medium).monospacedDigit())
+                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .disabled(task.isCompleted)
+                .onTapGesture(count: 2) {
+                    if !task.isCompleted {
+                        startEditing(task)
+                    }
+                }
             }
-            .buttonStyle(.plain)
-            .disabled(task.isCompleted)
 
             // Delete button (revealed dynamically on hover)
             Button {
@@ -139,6 +174,12 @@ struct TaskListView: View {
                 toggleTaskCompletion(task)
             } label: {
                 Label(task.isCompleted ? "Mark Incomplete" : "Mark Complete", systemImage: task.isCompleted ? "circle" : "checkmark.circle")
+            }
+
+            Button {
+                startEditing(task)
+            } label: {
+                Label("Rename Task", systemImage: "pencil")
             }
 
             Button {
@@ -324,5 +365,29 @@ struct TaskListView: View {
             task.estimatedPomos = newCount
             try? modelContext.save()
         }
+    }
+
+    // MARK: - Inline Editing Actions
+
+    private func startEditing(_ task: TaskItem) {
+        editingTaskId = task.id
+        editingTitle = task.title
+        isTextFieldFocused = true
+    }
+
+    private func saveEditing(_ task: TaskItem) {
+        let trimmed = editingTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            task.title = trimmed
+            if engine.activeTaskId == task.id {
+                engine.currentObjective = trimmed
+            }
+            try? modelContext.save()
+        }
+        editingTaskId = nil
+    }
+
+    private func cancelEditing() {
+        editingTaskId = nil
     }
 }
