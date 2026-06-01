@@ -74,8 +74,12 @@ final class TimerEngine {
     }
 
     func skip() {
+        guard state == .running || state == .paused else { return }
         cancellable?.cancel()
-        finishSession(skipped: true)
+        // Skip does not count as a completed session — no persist, no notification,
+        // no cycle counter increment. Just move directly to the next interval.
+        advanceToNextSession()
+        state = .idle
     }
 
     func reset() {

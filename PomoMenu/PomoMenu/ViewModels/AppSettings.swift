@@ -1,50 +1,52 @@
 import SwiftUI
 
-/// Centralized, observable user preferences backed by AppStorage.
-/// Injected as an environment object so any view can read/write settings.
+/// Centralized, observable user preferences.
+/// Uses plain stored properties (tracked by @Observable) with UserDefaults
+/// didSet persistence — avoiding the @ObservationIgnored/@AppStorage conflict
+/// that prevents SwiftUI from detecting changes and re-rendering.
 @Observable
 final class AppSettings {
 
     // MARK: - Timer Durations (seconds)
-    @ObservationIgnored
-    @AppStorage("workDuration") private var _workDuration: Int = 25 * 60
-    var workDuration: Int {
-        get { _workDuration }
-        set { _workDuration = newValue }
+
+    var workDuration: Int = UserDefaults.standard.integer(forKey: "workDuration").nonZero(default: 25 * 60) {
+        didSet { UserDefaults.standard.set(workDuration, forKey: "workDuration") }
     }
 
-    @ObservationIgnored
-    @AppStorage("shortBreakDuration") private var _shortBreakDuration: Int = 5 * 60
-    var shortBreakDuration: Int {
-        get { _shortBreakDuration }
-        set { _shortBreakDuration = newValue }
+    var shortBreakDuration: Int = UserDefaults.standard.integer(forKey: "shortBreakDuration").nonZero(default: 5 * 60) {
+        didSet { UserDefaults.standard.set(shortBreakDuration, forKey: "shortBreakDuration") }
     }
 
-    @ObservationIgnored
-    @AppStorage("longBreakDuration") private var _longBreakDuration: Int = 15 * 60
-    var longBreakDuration: Int {
-        get { _longBreakDuration }
-        set { _longBreakDuration = newValue }
+    var longBreakDuration: Int = UserDefaults.standard.integer(forKey: "longBreakDuration").nonZero(default: 15 * 60) {
+        didSet { UserDefaults.standard.set(longBreakDuration, forKey: "longBreakDuration") }
     }
 
     // MARK: - Behavior
-    @ObservationIgnored
-    @AppStorage("autoStart") private var _autoStart: Bool = false
-    var autoStart: Bool {
-        get { _autoStart }
-        set { _autoStart = newValue }
+
+    var autoStart: Bool = UserDefaults.standard.bool(forKey: "autoStart") {
+        didSet { UserDefaults.standard.set(autoStart, forKey: "autoStart") }
     }
 
-    @ObservationIgnored
-    @AppStorage("menuBarStyle") private var _menuBarStyle: String = MenuBarStyle.compact.rawValue
-    var menuBarStyle: MenuBarStyle {
-        get { MenuBarStyle(rawValue: _menuBarStyle) ?? .compact }
-        set { _menuBarStyle = newValue.rawValue }
+    // MARK: - Menu Bar Style
+
+    var menuBarStyle: MenuBarStyle = MenuBarStyle(rawValue: UserDefaults.standard.string(forKey: "menuBarStyle") ?? "") ?? .compact {
+        didSet { UserDefaults.standard.set(menuBarStyle.rawValue, forKey: "menuBarStyle") }
     }
 }
 
+// MARK: - Helpers
+
+private extension Int {
+    /// Returns self if non-zero, otherwise returns the given default.
+    func nonZero(default fallback: Int) -> Int {
+        self == 0 ? fallback : self
+    }
+}
+
+// MARK: - Menu Bar Style
+
 enum MenuBarStyle: String, CaseIterable {
-    case compact  = "compact"   // "25m" or "24:59"
-    case dot      = "dot"       // colored circle dot
-    case full     = "full"      // full "MM:SS" always
+    case compact = "compact"   // "25m" when idle, "MM:SS" when active
+    case dot     = "dot"       // colored circle dot
+    case full    = "full"      // full "MM:SS" always
 }

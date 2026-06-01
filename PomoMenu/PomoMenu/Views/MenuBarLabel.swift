@@ -26,16 +26,20 @@ struct MenuBarLabel: View {
 
     private var dotView: some View {
         HStack(spacing: 4) {
-            Circle()
-                .fill(dotColor)
-                .frame(width: 8, height: 8)
-                .shadow(color: dotColor.opacity(0.6), radius: engine.state == .running ? 3 : 0)
-                .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true),
-                           value: engine.state == .running)
             if engine.isActive {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 8, height: 8)
+                    .shadow(color: dotColor.opacity(0.6), radius: engine.state == .running ? 3 : 0)
+                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true),
+                               value: engine.state == .running)
                 Text(engine.shortLabel)
                     .font(.system(size: 11, weight: .medium))
                     .monospacedDigit()
+            } else {
+                // Idle: show session emoji so the menu bar item is never blank
+                Text(sessionShortName)
+                    .font(.system(size: 14))
             }
         }
     }

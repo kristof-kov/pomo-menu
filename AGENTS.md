@@ -34,8 +34,9 @@ You are an expert native macOS software engineer specializing in minimalist desk
 *   **Commit after each verified, compiling increment** — not per file, not per feature.
 *   **Branching strategy:**
   * `main` — stable, always builds
-  * Feature branches cut from `main`, named `feature/<short-description>` (e.g. `feature/timer-engine`, `feature/hotkeys`, `feature/statistics-view`)
-  * Merge back into `main` when the feature compiles and works end-to-end
+  * Feature branches cut from `main`, named `feature/<short-description>` (e.g. `feature/timer-engine`, `feature/statistics-view`)
+  * Bug fix branches cut from `main`, named `fix/<short-description>` (e.g. `fix/skip-logic`, `fix/dot-display`)
+  * Merge back into `main` when the branch compiles and works end-to-end
   * Never commit directly to `main`
 
 ## Workflow Protocol
