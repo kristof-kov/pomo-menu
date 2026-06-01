@@ -48,25 +48,23 @@ struct PopoverRootView: View {
 
             Divider()
 
-            // 3. Middle scrollable area containing Tasks and History
-            ScrollView {
-                VStack(spacing: 12) {
-                    TaskListView(engine: engine)
-                    
-                    SessionHistoryView()
-                }
+            // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
+            TaskListView(engine: engine)
                 .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-            }
-            .scrollIndicators(.never)
+                .padding(.top, 10)
+                .padding(.bottom, 4)
+
+            // 4. Collapsible Session History (collapses/expands dynamically)
+            SessionHistoryView()
+                .padding(.horizontal, 12)
+                .padding(.bottom, 10)
 
             Divider()
 
-            // 4. Anchored footer controls row
+            // 5. Anchored footer controls row
             footerSection
         }
         .frame(width: 280)
-        .frame(maxHeight: 480)
         .background(.regularMaterial)
     }
 
