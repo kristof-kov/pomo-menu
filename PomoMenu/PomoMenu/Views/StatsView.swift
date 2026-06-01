@@ -1,54 +1,76 @@
 import SwiftUI
 import SwiftData
 
-/// Full analytics sheet presented when the user taps the chart button.
+/// Dedicated analytics view that opens in a standalone window, styled to match the Settings window.
 struct StatsView: View {
     @Query(sort: \SessionRecord.timestamp, order: .reverse) private var allRecords: [SessionRecord]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Title bar
-            HStack {
-                Text("Statistics")
-                    .font(.system(size: 15, weight: .semibold))
-                Spacer()
+        Form {
+            // Overview section with sleek column headers
+            Section(header: Text("Overview").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+                HStack(spacing: 0) {
+                    StatColumn(value: "\(todayCount)", label: "Today", symbol: "sun.max")
+                    Divider().padding(.vertical, 4)
+                    StatColumn(value: "\(weekCount)",  label: "This Week", symbol: "calendar.badge.clock")
+                    Divider().padding(.vertical, 4)
+                    StatColumn(value: "\(allRecords.filter { $0.resolvedType == .work }.count)", label: "All Time", symbol: "chart.line.uptrend.xyaxis")
+                }
+                .padding(.vertical, 4)
             }
-            .padding(16)
 
-            Divider()
-
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Summary cards
-                    summaryCards
-
-                    Divider()
-
-                    // Per-task breakdown
-                    taskBreakdown
-
-                    // Full record list (last 30)
-                    if !allRecords.isEmpty {
-                        Divider()
-                        recentLog
+            // Top tasks completed
+            Section(header: Text("Top Focus Areas").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+                if sortedTasks.isEmpty {
+                    Text("No objectives tracked yet.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.tertiary)
+                } else {
+                    ForEach(sortedTasks.prefix(5), id: \.key) { task, records in
+                        HStack {
+                            Text(task)
+                                .font(.system(size: 12))
+                                .lineLimit(1)
+                            Spacer()
+                            Text("\(records.count) completed")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
-                .padding(16)
+            }
+
+            // Recent activity log
+            if !allRecords.isEmpty {
+                Section(header: Text("Recent Sessions").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(allRecords.prefix(8)) { record in
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(record.resolvedType.color)
+                                    .frame(width: 5, height: 5)
+
+                                Text(record.taskDescription.isEmpty ? record.resolvedType.label : record.taskDescription)
+                                    .font(.system(size: 11))
+                                    .lineLimit(1)
+
+                                Spacer()
+
+                                Text(record.timestamp.formatted(.dateTime.month().day().hour().minute()))
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
             }
         }
-        .frame(width: 320, height: 420)
-        .background(.regularMaterial)
+        .formStyle(.grouped)
+        .frame(width: 400, height: 340)
     }
 
-    // MARK: - Summary Cards
-
-    private var summaryCards: some View {
-        HStack(spacing: 12) {
-            StatCard(value: "\(todayCount)", label: "Today", symbol: "sun.max")
-            StatCard(value: "\(weekCount)",  label: "This Week", symbol: "calendar.badge.clock")
-            StatCard(value: "\(allRecords.count)", label: "All Time", symbol: "chart.line.uptrend.xyaxis")
-        }
-    }
+    // MARK: - Computations
 
     private var todayCount: Int {
         allRecords.filter { $0.isToday && $0.resolvedType == .work }.count
@@ -59,95 +81,35 @@ struct StatsView: View {
         return allRecords.filter { $0.timestamp >= start && $0.resolvedType == .work }.count
     }
 
-    // MARK: - Task Breakdown
-
-    private var taskBreakdown: some View {
+    private var sortedTasks: [(key: String, value: [SessionRecord])] {
         let tasks = Dictionary(grouping: allRecords.filter { $0.resolvedType == .work && !$0.taskDescription.isEmpty },
                                by: \.taskDescription)
-        let sorted = tasks.sorted { $0.value.count > $1.value.count }.prefix(8)
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Top Tasks")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.8)
-
-            if sorted.isEmpty {
-                Text("No tasks tracked yet.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.tertiary)
-            } else {
-                ForEach(sorted, id: \.key) { task, records in
-                    HStack {
-                        Text(task)
-                            .font(.system(size: 12))
-                            .lineLimit(1)
-                        Spacer()
-                        Text("\(records.count) 🍅")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
-                }
-            }
-        }
-    }
-
-    // MARK: - Recent Log
-
-    private var recentLog: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recent Sessions")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.8)
-
-            ForEach(allRecords.prefix(30)) { record in
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(record.resolvedType.color)
-                        .frame(width: 6, height: 6)
-
-                    Text(record.taskDescription.isEmpty ? record.resolvedType.label : record.taskDescription)
-                        .font(.system(size: 11))
-                        .lineLimit(1)
-
-                    Spacer()
-
-                    Text(record.timestamp.formatted(.dateTime.month().day().hour().minute()))
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        }
+        return tasks.sorted { $0.value.count > $1.value.count }.map { (key: $0.key, value: $0.value) }
     }
 }
 
-// MARK: - Stat Card
+// MARK: - Stat Column
 
-private struct StatCard: View {
+private struct StatColumn: View {
     let value: String
     let label: String
     let symbol: String
 
     var body: some View {
         VStack(spacing: 4) {
-            Image(systemName: symbol)
-                .font(.system(size: 14))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
+                Image(systemName: symbol)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Text(label)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-            Text(label)
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
