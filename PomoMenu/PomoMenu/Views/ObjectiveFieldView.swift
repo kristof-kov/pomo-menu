@@ -8,7 +8,7 @@ struct ObjectiveFieldView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Label("Current Objective", systemImage: "target")
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .tracking(0.8)

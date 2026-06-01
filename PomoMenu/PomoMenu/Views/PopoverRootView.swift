@@ -15,23 +15,23 @@ struct PopoverRootView: View {
             Divider()
 
             ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     TimerSectionView(engine: engine)
 
-                    Divider().padding(.horizontal, 16)
+                    Divider().padding(.horizontal, 12)
 
-                    VStack(spacing: 14) {
+                    VStack(spacing: 10) {
                         ObjectiveFieldView(engine: engine)
                         ConfigPanelView(settings: settings)
                         SessionHistoryView()
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 12)
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, 12)
             }
             .frame(maxHeight: .infinity)
         }
-        .frame(width: 300, height: 520)
+        .frame(width: 280, height: 390)
         .background(.regularMaterial)
     }
 
@@ -52,29 +52,41 @@ struct PopoverRootView: View {
             Spacer()
 
             // Stats button
-            Button { openWindow(id: "stats") } label: {
-                Image(systemName: "chart.bar")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 28, height: 28)
-                    .background(.secondary.opacity(0.08), in: Circle())
+            TopBarButton(symbol: "chart.bar", help: "Statistics") {
+                openWindow(id: "stats")
             }
-            .buttonStyle(.plain)
-            .help("Statistics")
 
             // Quit button
-            Button { NSApplication.shared.terminate(nil) } label: {
-                Image(systemName: "power")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 28, height: 28)
-                    .background(.secondary.opacity(0.08), in: Circle())
+            TopBarButton(symbol: "power", help: "Quit PomoMenu") {
+                NSApplication.shared.terminate(nil)
             }
-            .buttonStyle(.plain)
-            .help("Quit PomoMenu")
-            .padding(.leading, 6)
+            .padding(.leading, 4)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+    }
+}
+
+// MARK: - Top Bar Button
+
+private struct TopBarButton: View {
+    let symbol: String
+    let help: String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(isHovered ? .primary : .secondary)
+                .frame(width: 24, height: 24)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help(help)
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }

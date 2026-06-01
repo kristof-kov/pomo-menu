@@ -5,51 +5,50 @@ struct TimerSectionView: View {
     @Bindable var engine: TimerEngine
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Session type badge
-            HStack(spacing: 6) {
-                Image(systemName: engine.currentSession.sfSymbol)
-                    .font(.system(size: 12))
-                Text(engine.currentSession.label.uppercased())
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .tracking(1.5)
+        VStack(spacing: 14) {
+            // Big countdown & Session type subtitle
+            VStack(spacing: 6) {
+                Text(engine.formattedTime)
+                    .font(.system(size: 38, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.primary)
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(.default, value: engine.remainingSeconds)
+
+                HStack(spacing: 5) {
+                    Image(systemName: engine.currentSession.sfSymbol)
+                        .font(.system(size: 10, weight: .medium))
+                    Text(engine.currentSession.label)
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundStyle(engine.currentSession.color)
             }
-            .foregroundStyle(engine.currentSession.color)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 5)
-            .background(engine.currentSession.color.opacity(0.12), in: Capsule())
 
-            // Big countdown
-            Text(engine.formattedTime)
-                .font(.system(size: 52, weight: .thin, design: .monospaced))
-                .foregroundStyle(.primary)
-                .contentTransition(.numericText(countsDown: true))
-                .animation(.default, value: engine.remainingSeconds)
-
-            // Progress ring
+            // Progress bar
             ProgressArcView(engine: engine)
-                .frame(height: 4)
-                .padding(.horizontal, 24)
+                .frame(height: 3)
+                .padding(.horizontal, 20)
 
             // Controls
-            HStack(spacing: 20) {
+            HStack(spacing: 24) {
                 // Reset
-                ControlButton(symbol: "arrow.counterclockwise", size: 14) {
+                ControlButton(symbol: "arrow.counterclockwise", size: 13) {
                     engine.reset()
                 }
+                .disabled(!engine.isActive)
                 .opacity(engine.isActive ? 1 : 0.3)
 
                 // Primary: Start / Pause / Resume
                 primaryButton
 
                 // Skip
-                ControlButton(symbol: "forward.end", size: 14) {
+                ControlButton(symbol: "forward.end", size: 13) {
                     engine.skip()
                 }
+                .disabled(!engine.isActive)
                 .opacity(engine.isActive ? 1 : 0.3)
             }
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 12)
     }
 
     // MARK: - Primary Button
@@ -57,17 +56,11 @@ struct TimerSectionView: View {
     @ViewBuilder
     private var primaryButton: some View {
         Button(action: engine.togglePause) {
-            ZStack {
-                Circle()
-                    .fill(engine.currentSession.color)
-                    .frame(width: 54, height: 54)
-                    .shadow(color: engine.currentSession.color.opacity(0.4), radius: 8, y: 4)
-
-                Image(systemName: primarySymbol)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(.white)
-                    .contentTransition(.symbolEffect(.replace))
-            }
+            Image(systemName: primarySymbol)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(engine.currentSession.color)
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.3), value: engine.state)
@@ -91,12 +84,12 @@ private struct ProgressArcView: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.secondary.opacity(0.2))
-                    .frame(height: 4)
+                    .fill(.secondary.opacity(0.15))
+                    .frame(height: 3)
 
                 Capsule()
                     .fill(engine.currentSession.color)
-                    .frame(width: geo.size.width * progress, height: 4)
+                    .frame(width: geo.size.width * progress, height: 3)
                     .animation(.linear(duration: 1), value: engine.remainingSeconds)
             }
         }
@@ -115,15 +108,19 @@ struct ControlButton: View {
     let symbol: String
     let size: CGFloat
     let action: () -> Void
+    @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: size, weight: .regular))
-                .foregroundStyle(.secondary)
-                .frame(width: 32, height: 32)
-                .background(.secondary.opacity(0.08), in: Circle())
+                .font(.system(size: size, weight: .medium))
+                .foregroundStyle(isHovered ? .primary : .secondary)
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }

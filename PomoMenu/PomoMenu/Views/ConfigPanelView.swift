@@ -69,7 +69,7 @@ struct ConfigPanelView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
-        .background(.secondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 10))
+        .background(.secondary.opacity(0.04), in: RoundedRectangle(cornerRadius: 10))
     }
 }
 
@@ -87,7 +87,7 @@ private struct DurationRow: View {
     var body: some View {
         HStack {
             Image(systemName: symbol)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundStyle(.secondary)
                 .frame(width: 18)
 
@@ -96,27 +96,41 @@ private struct DurationRow: View {
 
             Spacer()
 
-            HStack(spacing: 2) {
-                Button { if minutes > 60 { minutes -= 60 } } label: {
-                    Image(systemName: "minus")
-                        .font(.system(size: 10, weight: .semibold))
-                        .frame(width: 22, height: 22)
-                        .background(.secondary.opacity(0.1), in: Circle())
+            HStack(spacing: 3) {
+                DurationRowButton(symbol: "minus") {
+                    if minutes > 60 { minutes -= 60 }
                 }
-                .buttonStyle(.plain)
 
                 Text("\(displayMinutes)m")
                     .font(.system(size: 12, weight: .medium).monospacedDigit())
-                    .frame(width: 36, alignment: .center)
+                    .frame(width: 32, alignment: .center)
 
-                Button { if minutes < 60 * 60 { minutes += 60 } } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 10, weight: .semibold))
-                        .frame(width: 22, height: 22)
-                        .background(.secondary.opacity(0.1), in: Circle())
+                DurationRowButton(symbol: "plus") {
+                    if minutes < 60 * 60 { minutes += 60 }
                 }
-                .buttonStyle(.plain)
             }
+        }
+    }
+}
+
+// MARK: - Duration Row Button
+
+private struct DurationRowButton: View {
+    let symbol: String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 9, weight: .bold))
+                .foregroundStyle(isHovered ? .primary : .secondary)
+                .frame(width: 20, height: 20)
+                .background(isHovered ? Color.secondary.opacity(0.15) : Color.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 4))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }
@@ -132,7 +146,7 @@ private struct SettingToggle: View {
         Toggle(isOn: $value) {
             HStack(spacing: 6) {
                 Image(systemName: symbol)
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .frame(width: 18)
                 Text(label)
