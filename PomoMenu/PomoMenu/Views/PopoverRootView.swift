@@ -51,13 +51,7 @@ struct PopoverRootView: View {
             // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
             TaskListView(engine: engine)
                 .padding(.horizontal, 12)
-                .padding(.top, 10)
-                .padding(.bottom, 4)
-
-            // 4. Collapsible Session History (collapses/expands dynamically)
-            SessionHistoryView()
-                .padding(.horizontal, 12)
-                .padding(.bottom, 10)
+                .padding(.vertical, 10)
 
             Divider()
 
