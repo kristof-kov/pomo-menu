@@ -156,7 +156,7 @@ struct TaskListView: View {
 
             Spacer()
 
-            // Pomodoro progress (completed / estimated input badge)
+            // Pomodoro progress (completed / estimated input badge with standardized size)
             HStack(spacing: 3) {
                 // Completed/Done Count
                 if case .completed(let taskId) = activeCountField, taskId == task.id {
@@ -164,7 +164,6 @@ struct TaskListView: View {
                         .textFieldStyle(.plain)
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
                         .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-                        .frame(width: 14)
                         .multilineTextAlignment(.center)
                         .focused($isCountFieldFocused)
                         .onSubmit {
@@ -173,23 +172,24 @@ struct TaskListView: View {
                         .onExitCommand {
                             cancelCountEditing()
                         }
+                        .frame(width: 16, height: 16, alignment: .center)
                 } else {
-                    Button {
-                        if !task.isCompleted {
-                            startCountEditing(task, field: .completed(task.id))
+                    Text("\(task.completedPomos)")
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if !task.isCompleted {
+                                startCountEditing(task, field: .completed(task.id))
+                            }
                         }
-                    } label: {
-                        Text("\(task.completedPomos)")
-                            .font(.system(size: 11, weight: .medium).monospacedDigit())
-                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(task.isCompleted)
                 }
 
                 Text("/")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary.opacity(0.6))
+                    .frame(height: 16)
 
                 // Estimated Count
                 if case .estimated(let taskId) = activeCountField, taskId == task.id {
@@ -197,7 +197,6 @@ struct TaskListView: View {
                         .textFieldStyle(.plain)
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
                         .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-                        .frame(width: 14)
                         .multilineTextAlignment(.center)
                         .focused($isCountFieldFocused)
                         .onSubmit {
@@ -206,18 +205,18 @@ struct TaskListView: View {
                         .onExitCommand {
                             cancelCountEditing()
                         }
+                        .frame(width: 16, height: 16, alignment: .center)
                 } else {
-                    Button {
-                        if !task.isCompleted {
-                            startCountEditing(task, field: .estimated(task.id))
+                    Text("\(task.estimatedPomos)")
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
+                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if !task.isCompleted {
+                                startCountEditing(task, field: .estimated(task.id))
+                            }
                         }
-                    } label: {
-                        Text("\(task.estimatedPomos)")
-                            .font(.system(size: 11, weight: .medium).monospacedDigit())
-                            .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(task.isCompleted)
                 }
             }
             .padding(.horizontal, 6)
