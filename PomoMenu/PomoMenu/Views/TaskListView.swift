@@ -147,6 +147,24 @@ struct TaskListView: View {
                 Label("Reset Progress", systemImage: "arrow.counterclockwise")
             }
 
+            Menu("Completed Pomos (\(task.completedPomos))") {
+                Button("+1 Done") {
+                    adjustCompletedPomos(task, by: 1)
+                }
+                Button("-1 Done") {
+                    adjustCompletedPomos(task, by: -1)
+                }
+            }
+
+            Menu("Estimated Pomos (\(task.estimatedPomos))") {
+                Button("+1 Est") {
+                    adjustEstimatedPomos(task, by: 1)
+                }
+                Button("-1 Est") {
+                    adjustEstimatedPomos(task, by: -1)
+                }
+            }
+
             if !task.isCompleted {
                 Button {
                     engine.activeTaskId = task.id
@@ -290,5 +308,21 @@ struct TaskListView: View {
         }
         modelContext.delete(task)
         try? modelContext.save()
+    }
+
+    private func adjustCompletedPomos(_ task: TaskItem, by amount: Int) {
+        let newCount = task.completedPomos + amount
+        if newCount >= 0 {
+            task.completedPomos = newCount
+            try? modelContext.save()
+        }
+    }
+
+    private func adjustEstimatedPomos(_ task: TaskItem, by amount: Int) {
+        let newCount = task.estimatedPomos + amount
+        if newCount >= 1 {
+            task.estimatedPomos = newCount
+            try? modelContext.save()
+        }
     }
 }
