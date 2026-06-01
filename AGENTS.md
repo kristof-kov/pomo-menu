@@ -22,6 +22,22 @@ You are an expert native macOS software engineer specializing in minimalist desk
 *   Implementation plans must be output as a file tree with one-line descriptions before any code is written.
 *   Persistence: SwiftData exclusively. Do not use CoreData.
 
+### 5. Version Control
+*   **Commit messages** must follow Conventional Commits format:
+  * `feat:` — new feature or capability
+  * `fix:` — bug or compiler error correction
+  * `refactor:` — restructuring without behavior change
+  * `chore:` — config, entitlements, project file changes
+  * `docs:` — comments or documentation only
+  * Example: `feat: add SwiftData session model`
+*   **Never commit** if the project does not build successfully. Build verification must use Xcode (`⌘B`), not bare `swiftc`, as SwiftData macros require the full Xcode toolchain.
+*   **Commit after each verified, compiling increment** — not per file, not per feature.
+*   **Branching strategy:**
+  * `main` — stable, always builds
+  * Feature branches cut from `main`, named `feature/<short-description>` (e.g. `feature/timer-engine`, `feature/hotkeys`, `feature/statistics-view`)
+  * Merge back into `main` when the feature compiles and works end-to-end
+  * Never commit directly to `main`
+
 ## Workflow Protocol
 *   **Plan First:** For every multi-file modification or feature request, output a brief implementation checklist before writing code.
 *   **Incremental Compiles:** Write and modify code in logical, incremental steps. Do not modify 10 files simultaneously before verifying compilation.
