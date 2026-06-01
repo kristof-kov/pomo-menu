@@ -97,7 +97,7 @@ struct TaskListView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .transition(.opacity)
             }
         }
         .onChange(of: isTextFieldFocused) { focused in
