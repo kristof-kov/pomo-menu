@@ -26,6 +26,30 @@ struct TaskListView: View {
 
     @State private var isTasksExpanded = true
 
+    /// IDs of recently-completed tasks in the 1-second grace window before hiding.
+    @State private var justCompletedIds: Set<UUID> = []
+
+    @Environment(AppSettings.self) private var settings
+
+    // MARK: - Sorted / Filtered Task Lists
+
+    /// Incomplete tasks sorted by createdAt, then completed tasks sorted by createdAt.
+    private var sortedTasks: [TaskItem] {
+        let incomplete = tasks.filter { !$0.isCompleted }.sorted { $0.createdAt < $1.createdAt }
+        let completed  = tasks.filter {  $0.isCompleted }.sorted { $0.createdAt < $1.createdAt }
+        return incomplete + completed
+    }
+
+    /// The display list — completed tasks hidden (except grace-window ones) when setting is on.
+    private var visibleTasks: [TaskItem] {
+        if settings.hideCompletedTasks {
+            return sortedTasks.filter { !$0.isCompleted || justCompletedIds.contains($0.id) }
+        }
+        return sortedTasks
+    }
+
+    // MARK: - Body
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             // Header toggle button
@@ -61,12 +85,12 @@ struct TaskListView: View {
 
             if isTasksExpanded {
                 VStack(alignment: .leading, spacing: 0) {
-                    // Tasks items list
-                    if tasks.isEmpty {
+                    if visibleTasks.isEmpty && !isAddingTask {
                         emptyState
                     } else {
-                        ForEach(tasks) { task in
+                        ForEach(visibleTasks) { task in
                             taskRow(for: task)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
                         }
                     }
 
@@ -77,17 +101,18 @@ struct TaskListView: View {
                         addTaskButton
                     }
                 }
+                .animation(.easeInOut(duration: 0.25), value: visibleTasks.map(\.id))
                 .transition(.opacity)
             }
         }
-        .onChange(of: isTextFieldFocused) { focused in
+        .onChange(of: isTextFieldFocused) { _, focused in
             if !focused {
                 if let id = editingTaskId, let task = tasks.first(where: { $0.id == id }) {
                     saveEditing(task)
                 }
             }
         }
-        .onChange(of: isCountFieldFocused) { focused in
+        .onChange(of: isCountFieldFocused) { _, focused in
             if !focused {
                 if let field = activeCountField {
                     switch field {
@@ -106,6 +131,7 @@ struct TaskListView: View {
     @ViewBuilder
     private func taskRow(for task: TaskItem) -> some View {
         let isActive = engine.activeTaskId == task.id
+        let isHovered = hoveredTaskId == task.id
 
         HStack(spacing: 8) {
             // Checkbox
@@ -240,16 +266,16 @@ struct TaskListView: View {
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
-            .opacity(hoveredTaskId == task.id ? 1.0 : 0.0)
-            .disabled(hoveredTaskId != task.id)
+            .opacity(isHovered ? 1.0 : 0.0)
+            .disabled(!isHovered)
         }
         .padding(.vertical, 4)
         .padding(.horizontal, 8)
         .background(
-            hoveredTaskId == task.id ? Color.accentColor.opacity(0.8) : Color.clear,
+            isHovered ? Color.accentColor.opacity(0.8) : Color.clear,
             in: RoundedRectangle(cornerRadius: 4)
         )
-        .foregroundStyle(hoveredTaskId == task.id ? .white : .primary)
+        .foregroundStyle(isHovered ? .white : .primary)
         .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -431,11 +457,27 @@ struct TaskListView: View {
     // MARK: - Task Row Secondary Actions
 
     private func toggleTaskCompletion(_ task: TaskItem) {
-        task.isCompleted.toggle()
-        if task.isCompleted && engine.activeTaskId == task.id {
-            engine.activeTaskId = nil
-            engine.currentObjective = ""
+        let completing = !task.isCompleted
+        task.isCompleted = completing
+
+        if completing {
+            if engine.activeTaskId == task.id {
+                engine.activeTaskId = nil
+                engine.currentObjective = ""
+            }
+            if settings.hideCompletedTasks {
+                justCompletedIds.insert(task.id)
+                let completedId = task.id
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        _ = self.justCompletedIds.remove(completedId)
+                    }
+                }
+            }
+        } else {
+            _ = justCompletedIds.remove(task.id)
         }
+
         try? modelContext.save()
     }
 
@@ -449,6 +491,7 @@ struct TaskListView: View {
             engine.activeTaskId = nil
             engine.currentObjective = ""
         }
+        _ = justCompletedIds.remove(task.id)
         modelContext.delete(task)
         try? modelContext.save()
     }

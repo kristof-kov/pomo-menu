@@ -48,6 +48,7 @@ struct PopoverRootView: View {
 
             // Tasks
             TaskListView(engine: engine)
+                .environment(settings)
                 .padding(.vertical, 6)
 
             Divider()

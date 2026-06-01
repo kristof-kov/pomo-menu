@@ -57,6 +57,12 @@ final class AppSettings {
     var enableNotifications: Bool = UserDefaults.standard.object(forKey: "enableNotifications") as? Bool ?? true {
         didSet { UserDefaults.standard.set(enableNotifications, forKey: "enableNotifications") }
     }
+
+    // MARK: - Tasks
+
+    var hideCompletedTasks: Bool = UserDefaults.standard.bool(forKey: "hideCompletedTasks") {
+        didSet { UserDefaults.standard.set(hideCompletedTasks, forKey: "hideCompletedTasks") }
+    }
 }
 
 // MARK: - Helpers
