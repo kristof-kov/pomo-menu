@@ -1,0 +1,48 @@
+# Xcode Build Output & System Data
+build/
+DerivedData/
+Logs/
+Products/
+*.xcresult
+
+# Xcode User-Specific Configurations
+*.xcuserstate
+xcuserdata/
+*.bundle/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# macOS System Clutter
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.Spotlight-V100
+.Trashes
+
+# Antigravity CLI Internals
+.antigravity/
+.antigravitycli/
+.antigravity_history
+igy_debug.log
+.env
+
+# Local Databases & SwiftData Testing Cache
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.CoreData-Snapshot
+
+# Swift Package Manager (SPM)
+.build/
+.swiftpm/
+xcodebuild.log
+
+# Deployment, Archives & Builds
+*.app
+*.zip
+*.ipa
+*.pkg
+*.xcarchive
