@@ -14,25 +14,22 @@ struct PopoverRootView: View {
 
             Divider()
 
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 12) {
-                    TimerSectionView(engine: engine)
+            VStack(spacing: 12) {
+                TimerSectionView(engine: engine)
 
-                    Divider().padding(.horizontal, 12)
+                Divider()
 
-                    VStack(spacing: 10) {
-                        ObjectiveFieldView(engine: engine)
-                        SessionHistoryView()
-                    }
-                    .padding(.horizontal, 12)
-                }
-                .padding(.vertical, 10)
+                ObjectiveFieldView(engine: engine)
+                SessionHistoryView()
             }
-            .frame(maxHeight: .infinity)
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+
+            Spacer()
 
             footerSection
         }
-        .frame(width: 260, height: 345)
+        .frame(width: 260, height: 360)
         .background(.regularMaterial)
     }
 
