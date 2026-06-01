@@ -24,52 +24,80 @@ struct TaskListView: View {
     @State private var tempCountText: String = ""
     @FocusState private var isCountFieldFocused: Bool
 
+    @State private var isTasksExpanded = true
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Header
-            HStack {
-                Text("Tasks:")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.8)
-                Spacer()
+            // Header toggle button
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    isTasksExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Text("Tasks")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.8)
+
+                    if !tasks.isEmpty && !isTasksExpanded {
+                        let incompleteCount = tasks.filter { !$0.isCompleted }.count
+                        Text("(\(incompleteCount))")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.tertiary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                        .rotationEffect(.degrees(isTasksExpanded ? 90 : 0))
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
             .padding(.bottom, 2)
 
-            // Tasks items list
-            if tasks.isEmpty {
-                emptyState
-            } else {
-                VStack(spacing: 6) {
-                    ForEach(tasks) { task in
-                        taskRow(for: task)
+            if isTasksExpanded {
+                VStack(alignment: .leading, spacing: 10) {
+                    // Tasks items list
+                    if tasks.isEmpty {
+                        emptyState
+                    } else {
+                        VStack(spacing: 6) {
+                            ForEach(tasks) { task in
+                                taskRow(for: task)
+                            }
+                        }
                     }
-                }
-            }
 
-            // [+ Add Task] row
-            if isAddingTask {
-                addTaskForm
-            } else {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        isAddingTask = true
+                    // [+ Add Task] row
+                    if isAddingTask {
+                        addTaskForm
+                    } else {
+                        Button {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                isAddingTask = true
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 11, weight: .bold))
+                                Text("Add Task")
+                                    .font(.system(size: 12, weight: .medium))
+                                Spacer()
+                            }
+                            .foregroundStyle(SessionType.work.color)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 10)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
                     }
-                } label: {
-                    HStack {
-                        Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
-                        Text("Add Task")
-                            .font(.system(size: 12, weight: .medium))
-                        Spacer()
-                    }
-                    .foregroundStyle(SessionType.work.color)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 10)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .transition(.opacity)
             }
         }
         .onChange(of: isTextFieldFocused) { focused in
