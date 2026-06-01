@@ -9,7 +9,7 @@ struct PopoverRootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar: app title + stat/quit buttons
+            // Top bar: app title
             topBar
 
             Divider()
@@ -22,16 +22,17 @@ struct PopoverRootView: View {
 
                     VStack(spacing: 10) {
                         ObjectiveFieldView(engine: engine)
-                        ConfigPanelView(settings: settings)
                         SessionHistoryView()
                     }
                     .padding(.horizontal, 12)
                 }
-                .padding(.bottom, 12)
+                .padding(.vertical, 10)
             }
             .frame(maxHeight: .infinity)
+
+            footerSection
         }
-        .frame(width: 280, height: 390)
+        .frame(width: 260, height: 345)
         .background(.regularMaterial)
     }
 
@@ -39,52 +40,69 @@ struct PopoverRootView: View {
     // MARK: - Top Bar
 
     private var topBar: some View {
-        HStack(spacing: 0) {
-            // App name
-            HStack(spacing: 6) {
-                Image(systemName: "timer")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(engine.currentSession.color)
-                Text("PomoMenu")
-                    .font(.system(size: 13, weight: .semibold))
-            }
-
+        HStack {
+            Image(systemName: "timer")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(engine.currentSession.color)
+            Text("PomoMenu")
+                .font(.system(size: 13, weight: .semibold))
             Spacer()
-
-            // Stats button
-            TopBarButton(symbol: "chart.bar", help: "Statistics") {
-                openWindow(id: "stats")
-            }
-
-            // Quit button
-            TopBarButton(symbol: "power", help: "Quit PomoMenu") {
-                NSApplication.shared.terminate(nil)
-            }
-            .padding(.leading, 4)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
     }
+
+    // MARK: - Footer Section
+
+    private var footerSection: some View {
+        VStack(spacing: 0) {
+            Divider()
+
+            VStack(spacing: 2) {
+                FooterRow(title: "Statistics...", symbol: "chart.bar") {
+                    openWindow(id: "stats")
+                }
+
+                FooterRow(title: "Settings...", symbol: "gearshape") {
+                    openWindow(id: "settings")
+                }
+
+                FooterRow(title: "Quit PomoMenu", symbol: "power") {
+                    NSApplication.shared.terminate(nil)
+                }
+            }
+            .padding(6)
+        }
+    }
 }
 
-// MARK: - Top Bar Button
+// MARK: - Footer Row
 
-private struct TopBarButton: View {
+private struct FooterRow: View {
+    let title: String
     let symbol: String
-    let help: String
     let action: () -> Void
     @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(isHovered ? .primary : .secondary)
-                .frame(width: 24, height: 24)
-                .contentShape(Rectangle())
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .font(.system(size: 11))
+                    .frame(width: 14)
+                    .foregroundStyle(isHovered ? .primary : .secondary)
+
+                Text(title)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(.primary)
+
+                Spacer()
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(isHovered ? Color.primary.opacity(0.06) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)
-        .help(help)
         .onHover { hovering in
             isHovered = hovering
         }

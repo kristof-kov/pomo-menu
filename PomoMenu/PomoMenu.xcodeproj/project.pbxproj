@@ -16,7 +16,7 @@
 		AA000008 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100008 /* MenuBarLabel.swift */; };
 		AA000009 /* TimerSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100009 /* TimerSectionView.swift */; };
 		AA000010 /* ObjectiveFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* ObjectiveFieldView.swift */; };
-		AA000011 /* ConfigPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011 /* ConfigPanelView.swift */; };
+		AA000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011 /* SettingsView.swift */; };
 		AA000012 /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100012 /* SessionHistoryView.swift */; };
 		AA000013 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100013 /* StatsView.swift */; };
 		AA000014 /* PopoverRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100014 /* PopoverRootView.swift */; };
@@ -32,7 +32,7 @@
 		AA100008 /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
 		AA100009 /* TimerSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSectionView.swift; sourceTree = "<group>"; };
 		AA100010 /* ObjectiveFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectiveFieldView.swift; sourceTree = "<group>"; };
-		AA100011 /* ConfigPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigPanelView.swift; sourceTree = "<group>"; };
+		AA100011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA100012 /* SessionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryView.swift; sourceTree = "<group>"; };
 		AA100013 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
 		AA100014 /* PopoverRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopoverRootView.swift; sourceTree = "<group>"; };
@@ -104,7 +104,7 @@
 				AA100008 /* MenuBarLabel.swift */,
 				AA100009 /* TimerSectionView.swift */,
 				AA100010 /* ObjectiveFieldView.swift */,
-				AA100011 /* ConfigPanelView.swift */,
+				AA100011 /* SettingsView.swift */,
 				AA100012 /* SessionHistoryView.swift */,
 				AA100013 /* StatsView.swift */,
 				AA100014 /* PopoverRootView.swift */,
@@ -186,7 +186,7 @@
 				AA000008 /* MenuBarLabel.swift in Sources */,
 				AA000009 /* TimerSectionView.swift in Sources */,
 				AA000010 /* ObjectiveFieldView.swift in Sources */,
-				AA000011 /* ConfigPanelView.swift in Sources */,
+				AA000011 /* SettingsView.swift in Sources */,
 				AA000012 /* SessionHistoryView.swift in Sources */,
 				AA000013 /* StatsView.swift in Sources */,
 				AA000014 /* PopoverRootView.swift in Sources */,
