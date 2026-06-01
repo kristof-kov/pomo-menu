@@ -18,7 +18,7 @@ struct PomoMenuApp: App {
 
     // MARK: - SwiftData Container
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([SessionRecord.self])
+        let schema = Schema([SessionRecord.self, TaskItem.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {
             return try ModelContainer(for: schema, configurations: [config])

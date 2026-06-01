@@ -23,6 +23,7 @@ final class TimerEngine {
     var currentSession: SessionType = .work
     var remainingSeconds: Int = Int(SessionType.work.defaultDuration)
     var currentObjective: String = ""
+    var activeTaskId: UUID?
 
     /// Counts completed work sessions (resets after longBreak cycle).
     var completedWorkInCycle: Int = 0
@@ -44,6 +45,13 @@ final class TimerEngine {
 
     func setModelContext(_ ctx: ModelContext) {
         self.modelContext = ctx
+    }
+
+    func selectSessionType(_ type: SessionType) {
+        cancellable?.cancel()
+        state = .idle
+        currentSession = type
+        resetToCurrentSession()
     }
 
     func start() {
@@ -114,6 +122,7 @@ final class TimerEngine {
         // Persist record only for naturally completed sessions
         if !skipped {
             persistRecord()
+            incrementActiveTaskPomo()
             notifications.postSessionEndNotification(sessionType: currentSession,
                                                      nextSession: nextSessionType())
         }
@@ -129,6 +138,17 @@ final class TimerEngine {
         } else {
             advanceToNextSession()
             state = .idle
+        }
+    }
+
+    private func incrementActiveTaskPomo() {
+        guard let ctx = modelContext, let id = activeTaskId, currentSession == .work else { return }
+        let descriptor = FetchDescriptor<TaskItem>()
+        if let tasks = try? ctx.fetch(descriptor) {
+            if let task = tasks.first(where: { $0.id == id }) {
+                task.completedPomos += 1
+                try? ctx.save()
+            }
         }
     }
 

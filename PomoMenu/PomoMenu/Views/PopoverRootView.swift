@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Root container for the menu bar popover dropdown.
-/// Assembles all sub-sections into a clean, scrollable vertical layout.
+/// Root container for the redesigned PomoMenu main window popover.
+/// Implements minimal top tabs, centered monospaced large countdown timer,
+/// Start / Skip control actions, interactive checklists, and anchored utility footer.
 struct PopoverRootView: View {
     @Bindable var engine: TimerEngine
     @Bindable var settings: AppSettings
@@ -9,99 +10,180 @@ struct PopoverRootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar: app title (locked at top)
-            topBar
+            // 1. Top tabs for manual mode select
+            topTabs
+                .padding(.vertical, 6)
 
             Divider()
 
-            // Scrollable middle content (only scrolls if expanded history overflows)
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(spacing: 12) {
-                    TimerSectionView(engine: engine)
+            // 2. Large centered countdown & control actions
+            VStack(spacing: 10) {
+                Text(engine.formattedTime)
+                    .font(.system(size: 44, weight: .regular, design: .monospaced))
+                    .foregroundStyle(.primary)
+                    .contentTransition(.numericText(countsDown: true))
 
-                    Divider()
+                HStack(spacing: 12) {
+                    ActionButton(
+                        title: engine.state == .running ? "Pause" : "Start",
+                        symbol: engine.state == .running ? "pause.fill" : "play.fill",
+                        isPrimary: true
+                      ) {
+                          engine.togglePause()
+                      }
 
-                    ObjectiveFieldView(engine: engine)
-                    SessionHistoryView()
+                    ActionButton(
+                        title: "Skip",
+                        symbol: "forward.end.fill",
+                        isPrimary: false
+                    ) {
+                        engine.skip()
+                    }
+                    .disabled(!engine.isActive)
+                    .opacity(engine.isActive ? 1.0 : 0.4)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
             }
+            .padding(.vertical, 14)
 
-            // Footer section (permanently anchored at the bottom)
+            Divider()
+
+            // 3. Interactive Tasks checklist area (scrollable if many tasks)
+            ScrollView(.vertical, showsIndicators: false) {
+                TaskListView(engine: engine)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+
+            Spacer()
+
+            Divider()
+
+            // 4. Anchored footer controls row
             footerSection
         }
-        .frame(width: 260, height: 360)
+        .frame(width: 280, height: 420)
         .background(.regularMaterial)
     }
 
+    // MARK: - Top Tabs
 
-    // MARK: - Top Bar
-
-    private var topBar: some View {
-        HStack {
-            Image(systemName: "timer")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(engine.currentSession.color)
-            Text("PomoMenu")
-                .font(.system(size: 13, weight: .semibold))
-            Spacer()
+    private var topTabs: some View {
+        HStack(spacing: 4) {
+            TabButton(title: "Pomodoro", isActive: engine.currentSession == .work) {
+                engine.selectSessionType(.work)
+            }
+            TabButton(title: "Short", isActive: engine.currentSession == .shortBreak) {
+                engine.selectSessionType(.shortBreak)
+            }
+            TabButton(title: "Long", isActive: engine.currentSession == .longBreak) {
+                engine.selectSessionType(.longBreak)
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
     }
 
     // MARK: - Footer Section
 
     private var footerSection: some View {
-        VStack(spacing: 0) {
-            Divider()
-
-            VStack(spacing: 2) {
-                FooterRow(title: "Statistics...", symbol: "chart.bar") {
-                    openWindow(id: "stats")
-                }
-
-                FooterRow(title: "Settings...", symbol: "gearshape") {
-                    openWindow(id: "settings")
-                }
-
-                FooterRow(title: "Quit PomoMenu", symbol: "power") {
-                    NSApplication.shared.terminate(nil)
-                }
+        HStack(spacing: 0) {
+            FooterIconButton(symbol: "gearshape", help: "Settings...") {
+                openWindow(id: "settings")
             }
-            .padding(6)
+
+            Spacer()
+
+            FooterIconButton(symbol: "chart.bar", help: "Statistics...") {
+                openWindow(id: "stats")
+            }
+
+            Spacer()
+
+            FooterIconButton(symbol: "power", help: "Quit PomoMenu") {
+                NSApplication.shared.terminate(nil)
+            }
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
     }
 }
 
-// MARK: - Footer Row
+// MARK: - Tab Button
 
-private struct FooterRow: View {
+private struct TabButton: View {
     let title: String
-    let symbol: String
+    let isActive: Bool
     let action: () -> Void
     @State private var isHovered = false
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: symbol)
-                    .font(.system(size: 11))
-                    .frame(width: 14)
-                    .foregroundStyle(isHovered ? .primary : .secondary)
-
-                Text(title)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.primary)
-
-                Spacer()
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(isHovered ? Color.primary.opacity(0.06) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+            Text(title)
+                .font(.system(size: 10, weight: isActive ? .semibold : .medium))
+                .foregroundStyle(isActive ? .primary : .secondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(
+                    isActive ? Color.primary.opacity(0.08) : (isHovered ? Color.primary.opacity(0.03) : Color.clear),
+                    in: RoundedRectangle(cornerRadius: 6)
+                )
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+// MARK: - Action Button
+
+private struct ActionButton: View {
+    let title: String
+    let symbol: String
+    let isPrimary: Bool
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: symbol)
+                    .font(.system(size: 10, weight: .semibold))
+                Text(title)
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .frame(width: 80, height: 24)
+            .foregroundStyle(isPrimary ? (isHovered ? .white : SessionType.work.color) : .secondary)
+            .background(
+                isPrimary
+                    ? (isHovered ? SessionType.work.color : SessionType.work.color.opacity(0.12))
+                    : (isHovered ? Color.primary.opacity(0.08) : Color.primary.opacity(0.03)),
+                in: RoundedRectangle(cornerRadius: 6)
+            )
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+    }
+}
+
+// MARK: - Footer Icon Button
+
+private struct FooterIconButton: View {
+    let symbol: String
+    let help: String
+    let action: () -> Void
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(isHovered ? .primary : .secondary)
+                .frame(width: 28, height: 28)
+                .background(isHovered ? Color.primary.opacity(0.06) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+        }
+        .buttonStyle(.plain)
+        .help(help)
         .onHover { hovering in
             isHovered = hovering
         }

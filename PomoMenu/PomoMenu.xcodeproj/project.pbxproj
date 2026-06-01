@@ -10,12 +10,13 @@
 		AA000001 /* PomoMenuApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100001 /* PomoMenuApp.swift */; };
 		AA000002 /* SessionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100002 /* SessionType.swift */; };
 		AA000003 /* SessionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100003 /* SessionRecord.swift */; };
+		AA000020 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100020 /* TaskItem.swift */; };
 		AA000004 /* TimerEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100004 /* TimerEngine.swift */; };
 		AA000005 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100005 /* NotificationService.swift */; };
 		AA000007 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100007 /* AppSettings.swift */; };
 		AA000008 /* MenuBarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100008 /* MenuBarLabel.swift */; };
-		AA000009 /* TimerSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100009 /* TimerSectionView.swift */; };
-		AA000010 /* ObjectiveFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* ObjectiveFieldView.swift */; };
+
+		AA000010 /* TaskListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100010 /* TaskListView.swift */; };
 		AA000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100011 /* SettingsView.swift */; };
 		AA000012 /* SessionHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100012 /* SessionHistoryView.swift */; };
 		AA000013 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA100013 /* StatsView.swift */; };
@@ -26,12 +27,13 @@
 		AA100001 /* PomoMenuApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PomoMenuApp.swift; sourceTree = "<group>"; };
 		AA100002 /* SessionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionType.swift; sourceTree = "<group>"; };
 		AA100003 /* SessionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRecord.swift; sourceTree = "<group>"; };
+		AA100020 /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
 		AA100004 /* TimerEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerEngine.swift; sourceTree = "<group>"; };
 		AA100005 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		AA100007 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		AA100008 /* MenuBarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabel.swift; sourceTree = "<group>"; };
-		AA100009 /* TimerSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSectionView.swift; sourceTree = "<group>"; };
-		AA100010 /* ObjectiveFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectiveFieldView.swift; sourceTree = "<group>"; };
+
+		AA100010 /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 		AA100011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA100012 /* SessionHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryView.swift; sourceTree = "<group>"; };
 		AA100013 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 			children = (
 				AA100002 /* SessionType.swift */,
 				AA100003 /* SessionRecord.swift */,
+				AA100020 /* TaskItem.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -102,8 +105,8 @@
 			isa = PBXGroup;
 			children = (
 				AA100008 /* MenuBarLabel.swift */,
-				AA100009 /* TimerSectionView.swift */,
-				AA100010 /* ObjectiveFieldView.swift */,
+
+				AA100010 /* TaskListView.swift */,
 				AA100011 /* SettingsView.swift */,
 				AA100012 /* SessionHistoryView.swift */,
 				AA100013 /* StatsView.swift */,
@@ -180,12 +183,13 @@
 				AA000001 /* PomoMenuApp.swift in Sources */,
 				AA000002 /* SessionType.swift in Sources */,
 				AA000003 /* SessionRecord.swift in Sources */,
+				AA000020 /* TaskItem.swift in Sources */,
 				AA000004 /* TimerEngine.swift in Sources */,
 				AA000005 /* NotificationService.swift in Sources */,
 				AA000007 /* AppSettings.swift in Sources */,
 				AA000008 /* MenuBarLabel.swift in Sources */,
-				AA000009 /* TimerSectionView.swift in Sources */,
-				AA000010 /* ObjectiveFieldView.swift in Sources */,
+
+				AA000010 /* TaskListView.swift in Sources */,
 				AA000011 /* SettingsView.swift in Sources */,
 				AA000012 /* SessionHistoryView.swift in Sources */,
 				AA000013 /* StatsView.swift in Sources */,
