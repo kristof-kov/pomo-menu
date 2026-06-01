@@ -75,9 +75,21 @@ struct SettingsView: View {
                 .toggleStyle(.switch)
                 .controlSize(.small)
             }
+            Section("Tasks") {
+                Toggle(isOn: $settings.hideCompletedTasks) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("Hide Completed Tasks")
+                    }
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 440)
+        .frame(width: 400, height: 510)
     }
 
     @ViewBuilder
