@@ -5,289 +5,289 @@ import AppKit
 import UniformTypeIdentifiers
 
 /// Dedicated analytics view that opens in a standalone window, styled to match the native macOS Settings/System Settings layout.
+/// Fixed size and optimized to fit all content cleanly without scrolling.
 struct StatsView: View {
     @Query(sort: \SessionRecord.timestamp, order: .reverse) private var allRecords: [SessionRecord]
     
     @State private var selectedRange: TimeRange = .sevenDays
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Overview metrics card
-                HStack(spacing: 16) {
-                    StatCard(
-                        title: "Today",
-                        timeLabel: formatTimeFocused(seconds: todaySeconds),
-                        sessionsLabel: "\(todayCount) session\(todayCount == 1 ? "" : "s")",
-                        symbol: "sun.max"
-                    )
-                    StatCard(
-                        title: "This Week",
-                        timeLabel: formatTimeFocused(seconds: weekSeconds),
-                        sessionsLabel: "\(weekCount) session\(weekCount == 1 ? "" : "s")",
-                        symbol: "calendar.badge.clock"
-                    )
-                    StatCard(
-                        title: "All Time",
-                        timeLabel: formatTimeFocused(seconds: allTimeSeconds),
-                        sessionsLabel: "\(allTimeCount) session\(allTimeCount == 1 ? "" : "s")",
-                        symbol: "chart.line.uptrend.xyaxis"
-                    )
-                }
-                
-                // Focus Distribution Bar Chart Card
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Focus Distribution")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(.secondary)
-                            Text("\(formatTimeFocused(minutes: selectedRangeTotalMinutes)) focused across \(selectedRangeTotalSessions) work session\(selectedRangeTotalSessions == 1 ? "" : "s")")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
-                        }
-                        
-                        Spacer()
-                        
-                        Picker("Range", selection: $selectedRange) {
-                            ForEach(TimeRange.allCases) { range in
-                                Text(range.rawValue).tag(range)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 140)
-                    }
-                    
-                    if dailyFocusData.allSatisfy({ $0.durationMinutes == 0 }) {
-                        VStack {
-                            Spacer()
-                            Text("No focus sessions tracked in this period.")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.tertiary)
-                            Spacer()
-                        }
-                        .frame(height: 140)
-                        .frame(maxWidth: .infinity)
-                    } else {
-                        Chart(dailyFocusData) { item in
-                            BarMark(
-                                x: .value("Day", selectedRange == .sevenDays ? item.weekdayLabel : item.dayLabel),
-                                y: .value("Minutes", item.durationMinutes)
-                            )
-                            .foregroundStyle(SessionType.work.color)
-                            .cornerRadius(3)
-                        }
-                        .chartYAxis {
-                            AxisMarks(position: .leading) { value in
-                                AxisGridLine()
-                                AxisTick()
-                                AxisValueLabel {
-                                    if let mins = value.as(Double.self) {
-                                        if mins >= 60 {
-                                            Text(String(format: "%.0fh", mins / 60))
-                                        } else {
-                                            Text("\(Int(mins))m")
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        .chartXAxis {
-                            AxisMarks { value in
-                                AxisValueLabel()
-                            }
-                        }
-                        .frame(height: 140)
-                    }
-                }
-                .padding(.all, 14)
-                .background(Color(NSColor.windowBackgroundColor))
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+        VStack(spacing: 10) {
+            // Overview metrics card
+            HStack(spacing: 12) {
+                StatCard(
+                    title: "Today",
+                    timeLabel: formatTimeFocused(seconds: todaySeconds),
+                    sessionsLabel: "\(todayCount) session\(todayCount == 1 ? "" : "s")",
+                    symbol: "sun.max"
                 )
-                
-                // GitHub-style Focus Consistency Heatmap Card
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Focus Consistency")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(.secondary)
-                            Text("Your daily Pomodoro consistency over the last 12 months.")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
-                        }
-                        
-                        Spacer()
-                        
-                        // Heatmap Legend
-                        HStack(spacing: 3) {
-                            Text("Less")
-                                .font(.system(size: 9))
-                                .foregroundStyle(.tertiary)
-                            
-                            ForEach([Color.secondary.opacity(0.1),
-                                     SessionType.work.color.opacity(0.25),
-                                     SessionType.work.color.opacity(0.50),
-                                     SessionType.work.color.opacity(0.75),
-                                     SessionType.work.color.opacity(1.0)], id: \.self) { color in
-                                RoundedRectangle(cornerRadius: 1.5)
-                                    .fill(color)
-                                    .frame(width: 7, height: 7)
-                            }
-                            
-                            Text("More")
-                                .font(.system(size: 9))
-                                .foregroundStyle(.tertiary)
-                        }
-                    }
-                    
-                    let cells = heatmapCells
-                    if cells.isEmpty {
-                        Text("No consistency records found.")
-                            .font(.system(size: 11))
+                StatCard(
+                    title: "This Week",
+                    timeLabel: formatTimeFocused(seconds: weekSeconds),
+                    sessionsLabel: "\(weekCount) session\(weekCount == 1 ? "" : "s")",
+                    symbol: "calendar.badge.clock"
+                )
+                StatCard(
+                    title: "All Time",
+                    timeLabel: formatTimeFocused(seconds: allTimeSeconds),
+                    sessionsLabel: "\(allTimeCount) session\(allTimeCount == 1 ? "" : "s")",
+                    symbol: "chart.line.uptrend.xyaxis"
+                )
+            }
+            
+            // Focus Distribution Bar Chart Card
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Focus Distribution")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.secondary)
+                        Text("\(formatTimeFocused(minutes: selectedRangeTotalMinutes)) focused across \(selectedRangeTotalSessions) work session\(selectedRangeTotalSessions == 1 ? "" : "s")")
+                            .font(.system(size: 9))
                             .foregroundStyle(.tertiary)
-                            .frame(height: 70)
-                    } else {
-                        Chart(cells) { cell in
-                            RectangleMark(
-                                x: .value("Week", cell.weekIndex),
-                                y: .value("Day", 6 - cell.dayOfWeek),
-                                width: .fixed(6),
-                                height: .fixed(6)
-                            )
-                            .foregroundStyle(cell.intensityColor)
-                            .cornerRadius(1)
-                        }
-                        .chartXAxis(.hidden)
-                        .chartYAxis(.hidden)
-                        .chartXScale(domain: 0...52)
-                        .chartYScale(domain: 0...6)
-                        .frame(height: 70)
                     }
-                }
-                .padding(.all, 14)
-                .background(Color(NSColor.windowBackgroundColor))
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                )
-                
-                // Side-by-Side: Top Focus Areas and Recent Sessions
-                HStack(alignment: .top, spacing: 16) {
-                    // Top Focus Areas
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Top Focus Areas")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.secondary)
-                        
-                        if sortedTasks.isEmpty {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Text("No objectives tracked yet.")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.tertiary)
-                                Spacer()
-                            }
-                            Spacer()
-                        } else {
-                            VStack(spacing: 8) {
-                                ForEach(sortedTasks.prefix(4), id: \.name) { task in
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        HStack {
-                                            Text(task.name)
-                                                .font(.system(size: 11, weight: .medium))
-                                                .lineLimit(1)
-                                            Spacer()
-                                            Text(formatTimeFocused(seconds: task.seconds))
-                                                .font(.system(size: 10))
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        
-                                        GeometryReader { geo in
-                                            ZStack(alignment: .leading) {
-                                                Capsule()
-                                                    .fill(.secondary.opacity(0.1))
-                                                    .frame(height: 4)
-                                                Capsule()
-                                                    .fill(SessionType.work.color)
-                                                    .frame(width: geo.size.width * task.ratio, height: 4)
-                                            }
-                                        }
-                                        .frame(height: 4)
-                                    }
-                                    .padding(.vertical, 2)
-                                }
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.all, 12)
-                    .frame(height: 140)
-                    .background(Color(NSColor.windowBackgroundColor))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                    )
                     
-                    // Recent Sessions
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Recent Sessions")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.secondary)
-                        
-                        if allRecords.isEmpty {
-                            Spacer()
-                            HStack {
-                                Spacer()
-                                Text("No completed sessions yet.")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.tertiary)
-                                Spacer()
-                            }
-                            Spacer()
-                        } else {
-                            VStack(alignment: .leading, spacing: 6) {
-                                ForEach(allRecords.prefix(4)) { record in
-                                    HStack(spacing: 6) {
-                                        Circle()
-                                            .fill(record.resolvedType.color)
-                                            .frame(width: 5, height: 5)
-                                        
-                                        Text(record.taskDescription.isEmpty ? record.resolvedType.label : record.taskDescription)
-                                            .font(.system(size: 11))
-                                            .lineLimit(1)
-                                        
-                                        Spacer()
-                                        
-                                        Text(record.timestamp.formatted(.dateTime.month().day().hour().minute()))
-                                            .font(.system(size: 9))
-                                            .foregroundStyle(.tertiary)
+                    Spacer()
+                    
+                    Picker("Range", selection: $selectedRange) {
+                        ForEach(TimeRange.allCases) { range in
+                            Text(range.rawValue).tag(range)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 130)
+                }
+                
+                if dailyFocusData.allSatisfy({ $0.durationMinutes == 0 }) {
+                    VStack {
+                        Spacer()
+                        Text("No focus sessions tracked in this period.")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                        Spacer()
+                    }
+                    .frame(height: 110)
+                    .frame(maxWidth: .infinity)
+                } else {
+                    Chart(dailyFocusData) { item in
+                        BarMark(
+                            x: .value("Day", selectedRange == .sevenDays ? item.weekdayLabel : item.dayLabel),
+                            y: .value("Minutes", item.durationMinutes)
+                        )
+                        .foregroundStyle(SessionType.work.color)
+                        .cornerRadius(2)
+                    }
+                    .chartYAxis {
+                        AxisMarks(position: .leading) { value in
+                            AxisGridLine()
+                            AxisTick()
+                            AxisValueLabel {
+                                if let mins = value.as(Double.self) {
+                                    if mins >= 60 {
+                                        Text(String(format: "%.0fh", mins / 60))
+                                    } else {
+                                        Text("\(Int(mins))m")
                                     }
-                                    .padding(.vertical, 1)
                                 }
                             }
                         }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.all, 12)
-                    .frame(height: 140)
-                    .background(Color(NSColor.windowBackgroundColor))
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                    )
+                    .chartXAxis {
+                        AxisMarks { value in
+                            AxisValueLabel()
+                        }
+                    }
+                    .frame(height: 110)
                 }
             }
-            .padding(.all, 16)
+            .padding(.all, 10)
+            .background(Color(NSColor.windowBackgroundColor))
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+            )
+            
+            // GitHub-style Focus Consistency Heatmap Card
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Focus Consistency")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.secondary)
+                        Text("Your daily Pomodoro consistency over the last 12 months.")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.tertiary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Heatmap Legend
+                    HStack(spacing: 3) {
+                        Text("Less")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.tertiary)
+                        
+                        ForEach([Color.secondary.opacity(0.1),
+                                 SessionType.work.color.opacity(0.25),
+                                 SessionType.work.color.opacity(0.50),
+                                 SessionType.work.color.opacity(0.75),
+                                 SessionType.work.color.opacity(1.0)], id: \.self) { color in
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(color)
+                                .frame(width: 6, height: 6)
+                        }
+                        
+                        Text("More")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                
+                let cells = heatmapCells
+                if cells.isEmpty {
+                    Text("No consistency records found.")
+                        .font(.system(size: 10))
+                        .foregroundStyle(.tertiary)
+                        .frame(height: 52)
+                } else {
+                    Chart(cells) { cell in
+                        RectangleMark(
+                            x: .value("Week", cell.weekIndex),
+                            y: .value("Day", 6 - cell.dayOfWeek),
+                            width: .fixed(7.5),
+                            height: .fixed(7.5)
+                        )
+                        .foregroundStyle(cell.intensityColor)
+                        .cornerRadius(1.5)
+                    }
+                    .chartXAxis(.hidden)
+                    .chartYAxis(.hidden)
+                    .chartXScale(domain: 0...52)
+                    .chartYScale(domain: 0...6)
+                    .frame(height: 72)
+                }
+            }
+            .padding(.all, 10)
+            .background(Color(NSColor.windowBackgroundColor))
+            .cornerRadius(6)
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+            )
+            
+            // Side-by-Side: Top Focus Areas and Recent Sessions
+            HStack(alignment: .top, spacing: 12) {
+                // Top Focus Areas
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Top Focus Areas")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.secondary)
+                    
+                    if sortedTasks.isEmpty {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Text("No objectives tracked yet.")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                            Spacer()
+                        }
+                        Spacer()
+                    } else {
+                        VStack(spacing: 6) {
+                            ForEach(sortedTasks.prefix(3), id: \.name) { task in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    HStack {
+                                        Text(task.name)
+                                            .font(.system(size: 10, weight: .medium))
+                                            .lineLimit(1)
+                                        Spacer()
+                                        Text(formatTimeFocused(seconds: task.seconds))
+                                            .font(.system(size: 9))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    
+                                    GeometryReader { geo in
+                                        ZStack(alignment: .leading) {
+                                            Capsule()
+                                                .fill(.secondary.opacity(0.1))
+                                                .frame(height: 3)
+                                            Capsule()
+                                                .fill(SessionType.work.color)
+                                                .frame(width: geo.size.width * task.ratio, height: 3)
+                                        }
+                                    }
+                                    .frame(height: 3)
+                                }
+                                .padding(.vertical, 1)
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.all, 10)
+                .frame(height: 115)
+                .background(Color(NSColor.windowBackgroundColor))
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                )
+                
+                // Recent Sessions
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Recent Sessions")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.secondary)
+                    
+                    if allRecords.isEmpty {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            Text("No completed sessions yet.")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                            Spacer()
+                        }
+                        Spacer()
+                    } else {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(allRecords.prefix(3)) { record in
+                                HStack(spacing: 5) {
+                                    Circle()
+                                        .fill(record.resolvedType.color)
+                                        .frame(width: 4, height: 4)
+                                    
+                                    Text(record.taskDescription.isEmpty ? record.resolvedType.label : record.taskDescription)
+                                        .font(.system(size: 10))
+                                        .lineLimit(1)
+                                    
+                                    Spacer()
+                                    
+                                    Text(record.timestamp.formatted(.dateTime.month().day().hour().minute()))
+                                        .font(.system(size: 8))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.vertical, 0.5)
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.all, 10)
+                .frame(height: 115)
+                .background(Color(NSColor.windowBackgroundColor))
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                )
+            }
         }
-        .frame(minWidth: 550, idealWidth: 600, maxWidth: .infinity, minHeight: 500, idealHeight: 560, maxHeight: .infinity)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(width: 580, height: 540)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -491,31 +491,31 @@ private struct StatCard: View {
     let symbol: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 5) {
                 Image(systemName: symbol)
-                    .font(.system(size: 12))
+                    .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
             }
             
             Text(timeLabel)
-                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
             
             Text(sessionsLabel)
-                .font(.system(size: 10))
+                .font(.system(size: 9))
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.all, 12)
+        .padding(.all, 10)
         .background(Color(NSColor.windowBackgroundColor))
-        .cornerRadius(8)
+        .cornerRadius(6)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 6)
                 .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
         )
     }
