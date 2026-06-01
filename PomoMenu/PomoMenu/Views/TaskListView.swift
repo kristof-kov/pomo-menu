@@ -12,7 +12,7 @@ struct TaskListView: View {
     @State private var newTaskEstPomos = 1
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             // Header
             HStack {
                 Text("Tasks:")
@@ -28,7 +28,7 @@ struct TaskListView: View {
             if tasks.isEmpty {
                 emptyState
             } else {
-                VStack(spacing: 4) {
+                VStack(spacing: 6) {
                     ForEach(tasks) { task in
                         taskRow(for: task)
                     }
@@ -46,14 +46,14 @@ struct TaskListView: View {
                 } label: {
                     HStack {
                         Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 11, weight: .bold))
                         Text("Add Task")
-                            .font(.system(size: 12))
+                            .font(.system(size: 12, weight: .medium))
                         Spacer()
                     }
                     .foregroundStyle(SessionType.work.color)
-                    .padding(.vertical, 5)
-                    .padding(.horizontal, 8)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -78,7 +78,7 @@ struct TaskListView: View {
                 try? modelContext.save()
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 13))
+                    .font(.system(size: 14))
                     .foregroundStyle(task.isCompleted ? .secondary : SessionType.work.color)
             }
             .buttonStyle(.plain)
@@ -92,7 +92,7 @@ struct TaskListView: View {
             } label: {
                 HStack {
                     Text(task.title)
-                        .font(.system(size: 12, weight: isActive ? .semibold : .regular))
+                        .font(.system(size: 13, weight: isActive ? .semibold : .regular))
                         .foregroundStyle(task.isCompleted ? .secondary : .primary)
                         .strikethrough(task.isCompleted)
                         .lineLimit(1)
@@ -102,7 +102,7 @@ struct TaskListView: View {
 
                     // Pomodoro progress (completed / estimated)
                     Text("(\(task.completedPomos)/\(task.estimatedPomos))")
-                        .font(.system(size: 10, weight: .medium).monospacedDigit())
+                        .font(.system(size: 11, weight: .medium).monospacedDigit())
                         .foregroundStyle(isActive ? SessionType.work.color : .secondary)
                 }
                 .contentShape(Rectangle())
@@ -120,13 +120,13 @@ struct TaskListView: View {
                 try? modelContext.save()
             } label: {
                 Image(systemName: "trash")
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
         }
-        .padding(.vertical, 5)
-        .padding(.horizontal, 8)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
         .background(
             isActive ? SessionType.work.color.opacity(0.08) : Color.clear,
             in: RoundedRectangle(cornerRadius: 6)

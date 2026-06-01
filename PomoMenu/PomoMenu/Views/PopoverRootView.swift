@@ -47,21 +47,17 @@ struct PopoverRootView: View {
 
             Divider()
 
-            // 3. Interactive Tasks checklist area (scrollable if many tasks)
-            ScrollView(.vertical, showsIndicators: false) {
-                TaskListView(engine: engine)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-
-            Spacer()
+            // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
+            TaskListView(engine: engine)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
 
             Divider()
 
             // 4. Anchored footer controls row
             footerSection
         }
-        .frame(width: 280, height: 420)
+        .frame(width: 280)
         .background(.regularMaterial)
     }
 
