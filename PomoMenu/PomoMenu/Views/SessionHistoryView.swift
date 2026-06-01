@@ -50,14 +50,9 @@ struct SessionHistoryView: View {
                     if todayRecords.isEmpty {
                         emptyState
                     } else {
-                        ScrollView(.vertical, showsIndicators: false) {
-                            VStack(spacing: 6) {
-                                ForEach(todayRecords) { record in
-                                    SessionRowView(record: record)
-                                }
-                            }
+                        ForEach(todayRecords) { record in
+                            SessionRowView(record: record)
                         }
-                        .frame(maxHeight: 90)
                     }
                 }
                 .padding(.horizontal, 12)

@@ -9,24 +9,26 @@ struct PopoverRootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top bar: app title
+            // Top bar: app title (locked at top)
             topBar
 
             Divider()
 
-            VStack(spacing: 12) {
-                TimerSectionView(engine: engine)
+            // Scrollable middle content (only scrolls if expanded history overflows)
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(spacing: 12) {
+                    TimerSectionView(engine: engine)
 
-                Divider()
+                    Divider()
 
-                ObjectiveFieldView(engine: engine)
-                SessionHistoryView()
+                    ObjectiveFieldView(engine: engine)
+                    SessionHistoryView()
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 8)
 
-            Spacer()
-
+            // Footer section (permanently anchored at the bottom)
             footerSection
         }
         .frame(width: 260, height: 360)
