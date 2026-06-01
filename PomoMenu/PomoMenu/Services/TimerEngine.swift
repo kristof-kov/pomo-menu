@@ -124,6 +124,7 @@ final class TimerEngine {
 
         if settings.autoStart {
             advanceToNextSession()
+            state = .idle   // must be .idle before start() so start() doesn't advance again
             start()
         } else {
             advanceToNextSession()

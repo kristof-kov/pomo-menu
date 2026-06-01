@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Compact menu bar label rendered inside `MenuBarExtra`.
-/// Switches between a dot, short label, or full timer based on user preference.
+/// Switches between dot mode, compact string, or full timer based on user preference.
 struct MenuBarLabel: View {
     let engine: TimerEngine
     let settings: AppSettings
@@ -12,51 +12,41 @@ struct MenuBarLabel: View {
             case .dot:
                 dotView
             case .full:
-                Text(engine.isActive ? engine.formattedTime : sessionShortName)
+                Text(engine.isActive ? engine.formattedTime : "🍅")
                     .monospacedDigit()
                     .font(.system(size: 12, weight: .medium))
             case .compact:
-                Text(engine.isActive ? engine.shortLabel : sessionShortName)
+                Text(engine.isActive ? engine.shortLabel : "🍅")
                     .font(.system(size: 12, weight: .medium))
             }
         }
     }
 
-    // MARK: - Sub-views
+    // MARK: - Dot Mode
 
+    /// Dot mode behaviour:
+    ///  - Idle / Finished → 🍅 emoji
+    ///  - Work running    → solid white circle (SF Symbol)
+    ///  - Break running   → semi-transparent white circle
+    ///  - Paused          → dimmed version of the above
+    @ViewBuilder
     private var dotView: some View {
-        HStack(spacing: 4) {
-            if engine.isActive {
-                Circle()
-                    .fill(dotColor)
-                    .frame(width: 8, height: 8)
-                    .shadow(color: dotColor.opacity(0.6), radius: engine.state == .running ? 3 : 0)
-                    .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true),
-                               value: engine.state == .running)
-                Text(engine.shortLabel)
-                    .font(.system(size: 11, weight: .medium))
-                    .monospacedDigit()
-            } else {
-                // Idle: show session emoji so the menu bar item is never blank
-                Text(sessionShortName)
-                    .font(.system(size: 14))
-            }
-        }
-    }
-
-    private var dotColor: Color {
         switch engine.state {
-        case .running: return engine.currentSession.color
-        case .paused:  return .secondary
-        default:       return .secondary
-        }
-    }
+        case .idle, .finished:
+            Text("🍅")
+                .font(.system(size: 14))
 
-    private var sessionShortName: String {
-        switch engine.currentSession {
-        case .work:       return "🍅"
-        case .shortBreak: return "☕"
-        case .longBreak:  return "🌙"
+        case .running:
+            Image(systemName: "circle.fill")
+                .font(.system(size: 10, weight: .regular))
+                .foregroundStyle(Color.white)
+                .opacity(engine.currentSession == .work ? 1.0 : 0.4)
+
+        case .paused:
+            Image(systemName: "circle.fill")
+                .font(.system(size: 10, weight: .regular))
+                .foregroundStyle(Color.white)
+                .opacity(engine.currentSession == .work ? 0.55 : 0.25)
         }
     }
 }
