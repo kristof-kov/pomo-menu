@@ -38,9 +38,66 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
             }
+
+            Section(header: Text("Sounds & Notifications").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+                Picker(selection: $settings.workSound) {
+                    soundOptions
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "speaker.wave.2")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("Work Complete Sound")
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Picker(selection: $settings.breakSound) {
+                    soundOptions
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "speaker.wave.2")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("Break Complete Sound")
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Toggle(isOn: $settings.enableNotifications) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bell")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("Enable Notifications")
+                    }
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 340)
+        .frame(width: 400, height: 440)
+    }
+
+    @ViewBuilder
+    private var soundOptions: some View {
+        Text("None (Silent)").tag("None (Silent)")
+        Divider()
+        Text("Glass").tag("Glass")
+        Text("Morse").tag("Morse")
+        Text("Tink").tag("Tink")
+        Text("Blow").tag("Blow")
+        Text("Basso").tag("Basso")
+        Text("Bottle").tag("Bottle")
+        Text("Frog").tag("Frog")
+        Text("Funk").tag("Funk")
+        Text("Hero").tag("Hero")
+        Text("Ping").tag("Ping")
+        Text("Pop").tag("Pop")
+        Text("Purr").tag("Purr")
+        Text("Sosumi").tag("Sosumi")
+        Text("Submarine").tag("Submarine")
     }
 }
 

@@ -1,4 +1,5 @@
 import UserNotifications
+import AppKit
 
 /// Thin wrapper around UNUserNotificationCenter for session-end alerts.
 final class NotificationService {
@@ -7,7 +8,14 @@ final class NotificationService {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
-    func postSessionEndNotification(sessionType: SessionType, nextSession: SessionType) {
+    func postSessionEndNotification(sessionType: SessionType, nextSession: SessionType, soundName: String, enableNotifications: Bool) {
+        if soundName != "None (Silent)" {
+            // Play native macOS system sound effect
+            NSSound(named: NSSound.Name(soundName))?.play()
+        }
+
+        guard enableNotifications else { return }
+
         let content = UNMutableNotificationContent()
         content.sound = .default
 

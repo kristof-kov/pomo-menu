@@ -7,18 +7,16 @@ struct MenuBarLabel: View {
     let settings: AppSettings
 
     var body: some View {
-        Group {
-            switch settings.menuBarStyle {
-            case .dot:
-                dotView
-            case .full:
-                Text(engine.isActive ? engine.formattedTime : "🍅")
-                    .monospacedDigit()
-                    .font(.system(size: 12, weight: .medium))
-            case .compact:
-                Text(engine.isActive ? engine.shortLabel : "🍅")
-                    .font(.system(size: 12, weight: .medium))
-            }
+        switch settings.menuBarStyle {
+        case .dot:
+            dotView
+        case .full:
+            Text(engine.isActive ? engine.formattedTime : "🍅")
+                .monospacedDigit()
+                .font(.system(size: 12, weight: .medium))
+        case .compact:
+            Text(engine.isActive ? engine.shortLabel : "🍅")
+                .font(.system(size: 12, weight: .medium))
         }
     }
 

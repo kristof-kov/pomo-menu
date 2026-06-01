@@ -25,6 +25,7 @@ final class TimerEngine {
     var currentObjective: String = ""
     var activeTaskId: UUID?
 
+
     /// Counts completed work sessions (resets after longBreak cycle).
     var completedWorkInCycle: Int = 0
 
@@ -127,8 +128,12 @@ final class TimerEngine {
         if !skipped {
             persistRecord()
             incrementActiveTaskPomo()
-            notifications.postSessionEndNotification(sessionType: currentSession,
-                                                     nextSession: nextSessionType())
+            notifications.postSessionEndNotification(
+                sessionType: currentSession,
+                nextSession: nextSessionType(),
+                soundName: currentSession == .work ? settings.workSound : settings.breakSound,
+                enableNotifications: settings.enableNotifications
+            )
         }
 
         if currentSession == .work {
@@ -185,7 +190,6 @@ final class TimerEngine {
         case .longBreak:  return settings.longBreakDuration
         }
     }
-
     private func persistRecord() {
         guard let ctx = modelContext else { return }
         let totalDuration = durationFor(currentSession)

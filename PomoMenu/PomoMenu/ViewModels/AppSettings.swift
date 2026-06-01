@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Centralized, observable user preferences.
 /// Uses plain stored properties (tracked by @Observable) with UserDefaults
@@ -31,6 +32,30 @@ final class AppSettings {
 
     var menuBarStyle: MenuBarStyle = MenuBarStyle(rawValue: UserDefaults.standard.string(forKey: "menuBarStyle") ?? "") ?? .compact {
         didSet { UserDefaults.standard.set(menuBarStyle.rawValue, forKey: "menuBarStyle") }
+    }
+
+    // MARK: - Alerts & Sounds
+
+    var workSound: String = UserDefaults.standard.string(forKey: "workSound") ?? "Glass" {
+        didSet {
+            UserDefaults.standard.set(workSound, forKey: "workSound")
+            if workSound != "None (Silent)" {
+                NSSound(named: NSSound.Name(workSound))?.play()
+            }
+        }
+    }
+
+    var breakSound: String = UserDefaults.standard.string(forKey: "breakSound") ?? "Tink" {
+        didSet {
+            UserDefaults.standard.set(breakSound, forKey: "breakSound")
+            if breakSound != "None (Silent)" {
+                NSSound(named: NSSound.Name(breakSound))?.play()
+            }
+        }
+    }
+
+    var enableNotifications: Bool = UserDefaults.standard.object(forKey: "enableNotifications") as? Bool ?? true {
+        didSet { UserDefaults.standard.set(enableNotifications, forKey: "enableNotifications") }
     }
 }
 
