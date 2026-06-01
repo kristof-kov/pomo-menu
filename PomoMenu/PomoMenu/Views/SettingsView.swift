@@ -12,7 +12,7 @@ struct SettingsView: View {
                 DurationSettingRow(label: "Long Break",   symbol: "moon.zzz",             minutes: $settings.longBreakDuration)
             }
 
-            Section(header: Text("Preferences & Styling").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+            Section(header: Text("Preferences").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
                 Toggle(isOn: $settings.autoStart) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.trianglehead.clockwise")
@@ -24,26 +24,23 @@ struct SettingsView: View {
                 .toggleStyle(.switch)
                 .controlSize(.small)
 
-                Divider()
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("Menu Bar Icon Style", systemImage: "menubar.rectangle")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
-
-                    Picker("", selection: $settings.menuBarStyle) {
-                        Text("Compact (25m)").tag(MenuBarStyle.compact)
-                        Text("Full Timer").tag(MenuBarStyle.full)
-                        Text("Dot Mode").tag(MenuBarStyle.dot)
+                Picker(selection: $settings.menuBarStyle) {
+                    Text("Compact (25m)").tag(MenuBarStyle.compact)
+                    Text("Full Timer").tag(MenuBarStyle.full)
+                    Text("Dot Mode").tag(MenuBarStyle.dot)
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "menubar.rectangle")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                        Text("Menu Bar Icon Style")
                     }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
                 }
-                .padding(.top, 4)
+                .pickerStyle(.menu)
             }
         }
         .formStyle(.grouped)
-        .frame(width: 320, height: 280)
+        .frame(width: 320, height: 260)
     }
 }
 
