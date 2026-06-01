@@ -19,7 +19,8 @@ struct PopoverRootView: View {
             // 2. Large centered countdown & control actions
             VStack(spacing: 10) {
                 Text(engine.formattedTime)
-                    .font(.system(size: 44, weight: .regular, design: .monospaced))
+                    .font(.system(size: 44, weight: .regular))
+                    .monospacedDigit()
                     .foregroundStyle(.primary)
                     .contentTransition(.numericText(countsDown: true))
 
@@ -47,10 +48,17 @@ struct PopoverRootView: View {
 
             Divider()
 
-            // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
-            TaskListView(engine: engine)
+            // 3. Middle scrollable area containing Tasks and History
+            ScrollView {
+                VStack(spacing: 12) {
+                    TaskListView(engine: engine)
+                    
+                    SessionHistoryView()
+                }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
+            }
+            .scrollIndicators(.never)
 
             Divider()
 
@@ -58,6 +66,7 @@ struct PopoverRootView: View {
             footerSection
         }
         .frame(width: 280)
+        .frame(maxHeight: 480)
         .background(.regularMaterial)
     }
 
