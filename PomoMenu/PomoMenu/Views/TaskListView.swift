@@ -10,6 +10,7 @@ struct TaskListView: View {
     @State private var isAddingTask = false
     @State private var newTaskTitle = ""
     @State private var newTaskEstPomos = 1
+    @State private var hoveredTaskId: UUID? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -70,12 +71,7 @@ struct TaskListView: View {
         HStack(spacing: 8) {
             // Checkbox
             Button {
-                task.isCompleted.toggle()
-                if task.isCompleted && engine.activeTaskId == task.id {
-                    engine.activeTaskId = nil
-                    engine.currentObjective = ""
-                }
-                try? modelContext.save()
+                toggleTaskCompletion(task)
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 14))
@@ -110,20 +106,17 @@ struct TaskListView: View {
             .buttonStyle(.plain)
             .disabled(task.isCompleted)
 
-            // Delete button
+            // Delete button (revealed dynamically on hover)
             Button {
-                if engine.activeTaskId == task.id {
-                    engine.activeTaskId = nil
-                    engine.currentObjective = ""
-                }
-                modelContext.delete(task)
-                try? modelContext.save()
+                deleteTask(task)
             } label: {
                 Image(systemName: "trash")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
+            .opacity(hoveredTaskId == task.id ? 1.0 : 0.0)
+            .disabled(hoveredTaskId != task.id)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
@@ -135,6 +128,42 @@ struct TaskListView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(isActive ? SessionType.work.color.opacity(0.18) : Color.clear, lineWidth: 1)
         )
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                hoveredTaskId = hovering ? task.id : nil
+            }
+        }
+        .contextMenu {
+            Button {
+                toggleTaskCompletion(task)
+            } label: {
+                Label(task.isCompleted ? "Mark Incomplete" : "Mark Complete", systemImage: task.isCompleted ? "circle" : "checkmark.circle")
+            }
+
+            Button {
+                resetTaskProgress(task)
+            } label: {
+                Label("Reset Progress", systemImage: "arrow.counterclockwise")
+            }
+
+            if !task.isCompleted {
+                Button {
+                    engine.activeTaskId = task.id
+                    engine.currentObjective = task.title
+                } label: {
+                    Label("Focus on Task", systemImage: "target")
+                }
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                deleteTask(task)
+            } label: {
+                Label("Delete Task", systemImage: "trash")
+            }
+        }
     }
 
     // MARK: - Add Task Form
@@ -236,5 +265,30 @@ struct TaskListView: View {
                 .padding(.vertical, 4)
             Spacer()
         }
+    }
+
+    // MARK: - Task Row Secondary Actions
+
+    private func toggleTaskCompletion(_ task: TaskItem) {
+        task.isCompleted.toggle()
+        if task.isCompleted && engine.activeTaskId == task.id {
+            engine.activeTaskId = nil
+            engine.currentObjective = ""
+        }
+        try? modelContext.save()
+    }
+
+    private func resetTaskProgress(_ task: TaskItem) {
+        task.completedPomos = 0
+        try? modelContext.save()
+    }
+
+    private func deleteTask(_ task: TaskItem) {
+        if engine.activeTaskId == task.id {
+            engine.activeTaskId = nil
+            engine.currentObjective = ""
+        }
+        modelContext.delete(task)
+        try? modelContext.save()
     }
 }
