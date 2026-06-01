@@ -89,7 +89,7 @@ struct TaskListView: View {
                                     .font(.system(size: 12, weight: .medium))
                                 Spacer()
                             }
-                            .foregroundStyle(SessionType.work.color)
+                            .foregroundStyle(engine.currentSession.color)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 10)
                             .contentShape(Rectangle())
@@ -134,7 +134,7 @@ struct TaskListView: View {
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 14))
-                    .foregroundStyle(task.isCompleted ? .secondary : SessionType.work.color)
+                    .foregroundStyle(task.isCompleted ? .secondary : engine.currentSession.color)
             }
             .buttonStyle(.plain)
 
@@ -191,7 +191,7 @@ struct TaskListView: View {
                     TextField("", text: $tempCountText)
                         .textFieldStyle(.plain)
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
-                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .foregroundStyle(isActive ? engine.currentSession.color : .secondary)
                         .multilineTextAlignment(.center)
                         .focused($isCountFieldFocused)
                         .onSubmit {
@@ -204,7 +204,7 @@ struct TaskListView: View {
                 } else {
                     Text("\(task.completedPomos)")
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
-                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .foregroundStyle(isActive ? engine.currentSession.color : .secondary)
                         .frame(width: 16, height: 16, alignment: .center)
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -224,7 +224,7 @@ struct TaskListView: View {
                     TextField("", text: $tempCountText)
                         .textFieldStyle(.plain)
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
-                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .foregroundStyle(isActive ? engine.currentSession.color : .secondary)
                         .multilineTextAlignment(.center)
                         .focused($isCountFieldFocused)
                         .onSubmit {
@@ -237,7 +237,7 @@ struct TaskListView: View {
                 } else {
                     Text("\(task.estimatedPomos)")
                         .font(.system(size: 11, weight: .medium).monospacedDigit())
-                        .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                        .foregroundStyle(isActive ? engine.currentSession.color : .secondary)
                         .frame(width: 16, height: 16, alignment: .center)
                         .contentShape(Rectangle())
                         .onTapGesture {
@@ -273,12 +273,12 @@ struct TaskListView: View {
         .padding(.vertical, 8)
         .padding(.horizontal, 10)
         .background(
-            isActive ? SessionType.work.color.opacity(0.08) : Color.clear,
+            isActive ? engine.currentSession.color.opacity(0.08) : Color.clear,
             in: RoundedRectangle(cornerRadius: 6)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 6)
-                .strokeBorder(isActive ? SessionType.work.color.opacity(0.18) : Color.clear, lineWidth: 1)
+                .strokeBorder(isActive ? engine.currentSession.color.opacity(0.18) : Color.clear, lineWidth: 1)
         )
         .contentShape(Rectangle())
         .onHover { hovering in
@@ -402,7 +402,7 @@ struct TaskListView: View {
                     }
                     .buttonStyle(.plain)
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(SessionType.work.color)
+                    .foregroundStyle(engine.currentSession.color)
                     .disabled(newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }

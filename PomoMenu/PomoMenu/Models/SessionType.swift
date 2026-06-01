@@ -19,9 +19,9 @@ enum SessionType: String, Codable, CaseIterable {
     /// Accent color used in the UI for each session type.
     var color: Color {
         switch self {
-        case .work:       return Color(hue: 0.02, saturation: 0.75, brightness: 0.90)  // warm red
-        case .shortBreak: return Color(hue: 0.55, saturation: 0.70, brightness: 0.85)  // teal
-        case .longBreak:  return Color(hue: 0.60, saturation: 0.65, brightness: 0.80)  // indigo
+        case .work:       return Color(hue: 0.02, saturation: 0.80, brightness: 0.88)  // pomodoro-red
+        case .shortBreak: return Color(hue: 0.58, saturation: 0.70, brightness: 0.88)  // short-blue
+        case .longBreak:  return Color(hue: 0.62, saturation: 0.85, brightness: 0.72)  // long-darkblue
         }
     }
 

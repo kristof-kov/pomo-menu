@@ -28,7 +28,8 @@ struct PopoverRootView: View {
                     ActionButton(
                         title: engine.state == .running ? "Pause" : "Start",
                         symbol: engine.state == .running ? "pause.fill" : "play.fill",
-                        isPrimary: true
+                        isPrimary: true,
+                        accentColor: engine.currentSession.color
                       ) {
                           engine.togglePause()
                       }
@@ -36,7 +37,8 @@ struct PopoverRootView: View {
                     ActionButton(
                         title: "Skip",
                         symbol: "forward.end.fill",
-                        isPrimary: false
+                        isPrimary: false,
+                        accentColor: engine.currentSession.color
                     ) {
                         engine.skip()
                     }
@@ -66,13 +68,13 @@ struct PopoverRootView: View {
 
     private var topTabs: some View {
         HStack(spacing: 4) {
-            TabButton(title: "Pomodoro", isActive: engine.currentSession == .work) {
+            TabButton(title: "Pomodoro", isActive: engine.currentSession == .work, activeColor: SessionType.work.color) {
                 engine.selectSessionType(.work)
             }
-            TabButton(title: "Short", isActive: engine.currentSession == .shortBreak) {
+            TabButton(title: "Short", isActive: engine.currentSession == .shortBreak, activeColor: SessionType.shortBreak.color) {
                 engine.selectSessionType(.shortBreak)
             }
-            TabButton(title: "Long", isActive: engine.currentSession == .longBreak) {
+            TabButton(title: "Long", isActive: engine.currentSession == .longBreak, activeColor: SessionType.longBreak.color) {
                 engine.selectSessionType(.longBreak)
             }
         }
@@ -138,6 +140,7 @@ private struct FooterRow: View {
 private struct TabButton: View {
     let title: String
     let isActive: Bool
+    let activeColor: Color
     let action: () -> Void
     @State private var isHovered = false
 
@@ -145,11 +148,11 @@ private struct TabButton: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 10, weight: isActive ? .semibold : .medium))
-                .foregroundStyle(isActive ? .primary : .secondary)
+                .foregroundStyle(isActive ? activeColor : .secondary)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
                 .background(
-                    isActive ? Color.primary.opacity(0.08) : (isHovered ? Color.primary.opacity(0.03) : Color.clear),
+                    isActive ? activeColor.opacity(0.12) : (isHovered ? Color.primary.opacity(0.03) : Color.clear),
                     in: RoundedRectangle(cornerRadius: 6)
                 )
         }
@@ -166,6 +169,7 @@ private struct ActionButton: View {
     let title: String
     let symbol: String
     let isPrimary: Bool
+    let accentColor: Color
     let action: () -> Void
     @State private var isHovered = false
 
@@ -178,10 +182,10 @@ private struct ActionButton: View {
                     .font(.system(size: 11, weight: .semibold))
             }
             .frame(width: 80, height: 24)
-            .foregroundStyle(isPrimary ? (isHovered ? .white : SessionType.work.color) : .secondary)
+            .foregroundStyle(isPrimary ? (isHovered ? .white : accentColor) : .secondary)
             .background(
                 isPrimary
-                    ? (isHovered ? SessionType.work.color : SessionType.work.color.opacity(0.12))
+                    ? (isHovered ? accentColor : accentColor.opacity(0.12))
                     : (isHovered ? Color.primary.opacity(0.08) : Color.primary.opacity(0.03)),
                 in: RoundedRectangle(cornerRadius: 6)
             )
