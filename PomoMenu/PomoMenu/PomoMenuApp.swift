@@ -7,7 +7,6 @@ struct PomoMenuApp: App {
     // MARK: - Shared Services (single instances shared across scene)
     private let settings: AppSettings
     private let engine: TimerEngine
-    private let hotkeyService = HotkeyService()
 
     init() {
         let s = AppSettings()
@@ -36,16 +35,6 @@ struct PomoMenuApp: App {
                 .modelContainer(sharedModelContainer)
                 .onAppear {
                     engine.setModelContext(sharedModelContainer.mainContext)
-                    if settings.hotkeysEnabled {
-                        hotkeyService.register { engine.togglePause() }
-                    }
-                }
-                .onChange(of: settings.hotkeysEnabled) { _, enabled in
-                    if enabled {
-                        hotkeyService.register { engine.togglePause() }
-                    } else {
-                        hotkeyService.unregister()
-                    }
                 }
         } label: {
             MenuBarLabel(engine: engine, settings: settings)

@@ -36,14 +36,6 @@ final class AppSettings {
     }
 
     @ObservationIgnored
-    @AppStorage("hotkeysEnabled") private var _hotkeysEnabled: Bool = true
-    var hotkeysEnabled: Bool {
-        get { _hotkeysEnabled }
-        set { _hotkeysEnabled = newValue }
-    }
-
-    // MARK: - Menu Bar Style
-    @ObservationIgnored
     @AppStorage("menuBarStyle") private var _menuBarStyle: String = MenuBarStyle.compact.rawValue
     var menuBarStyle: MenuBarStyle {
         get { MenuBarStyle(rawValue: _menuBarStyle) ?? .compact }

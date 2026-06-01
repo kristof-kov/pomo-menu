@@ -44,8 +44,7 @@ struct ConfigPanelView: View {
                     Divider()
 
                     // Toggles
-                    SettingToggle(label: "Auto-Start Intervals",  symbol: "arrow.trianglehead.clockwise", value: $settings.autoStart)
-                    SettingToggle(label: "Global Hotkey (⌥Space)", symbol: "keyboard.badge.ellipsis",     value: $settings.hotkeysEnabled)
+                    SettingToggle(label: "Auto-Start Intervals", symbol: "arrow.trianglehead.clockwise", value: $settings.autoStart)
 
                     Divider()
 
