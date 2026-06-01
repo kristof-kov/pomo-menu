@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Root container for the redesigned PomoMenu main window popover.
-/// Implements minimal top tabs, centered monospaced large countdown timer,
-/// Start / Skip control actions, interactive checklists, and anchored utility footer.
+/// Root container for the PomoMenu popover window.
+/// Styled to match stock macOS menu bar panels (WiFi, Sound, Battery).
 struct PopoverRootView: View {
     @Bindable var engine: TimerEngine
     @Bindable var settings: AppSettings
@@ -10,101 +9,114 @@ struct PopoverRootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // 1. Top tabs for manual mode select
-            topTabs
-                .padding(.vertical, 6)
+            // Mode selector
+            modePicker
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
 
             Divider()
 
-            // 2. Large centered countdown & control actions
-            VStack(spacing: 10) {
+            // Timer display
+            VStack(alignment: .leading, spacing: 6) {
                 Text(engine.formattedTime)
-                    .font(.system(size: 44, weight: .regular))
+                    .font(.system(size: 36, weight: .thin, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(.primary)
                     .contentTransition(.numericText(countsDown: true))
 
-                HStack(spacing: 12) {
-                    ActionButton(
-                        title: engine.state == .running ? "Pause" : "Start",
-                        symbol: engine.state == .running ? "pause.fill" : "play.fill",
-                        isPrimary: true,
-                        accentColor: engine.currentSession.color
-                      ) {
-                          engine.togglePause()
-                      }
-
-                    ActionButton(
-                        title: "Skip",
-                        symbol: "forward.end.fill",
-                        isPrimary: false,
-                        accentColor: engine.currentSession.color
-                    ) {
-                        engine.skip()
+                HStack(spacing: 8) {
+                    Button(action: { engine.togglePause() }) {
+                        Label(
+                            engine.state == .running ? "Pause" : "Start",
+                            systemImage: engine.state == .running ? "pause.fill" : "play.fill"
+                        )
                     }
+                    .controlSize(.small)
+
+                    Button(action: { engine.skip() }) {
+                        Label("Skip", systemImage: "forward.end.fill")
+                    }
+                    .controlSize(.small)
                     .disabled(!engine.isActive)
-                    .opacity(engine.isActive ? 1.0 : 0.4)
                 }
             }
-            .padding(.vertical, 14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
 
             Divider()
 
-            // 3. Interactive Tasks checklist area (fully dynamic, intrinsic height)
+            // Tasks
             TaskListView(engine: engine)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .padding(.vertical, 6)
 
             Divider()
 
-            // 5. Anchored footer controls row
-            footerSection
-        }
-        .frame(width: 280)
-        .background(.regularMaterial)
-    }
-
-    // MARK: - Top Tabs
-
-    private var topTabs: some View {
-        HStack(spacing: 4) {
-            TabButton(title: "Pomodoro", isActive: engine.currentSession == .work, activeColor: SessionType.work.color) {
-                engine.selectSessionType(.work)
-            }
-            TabButton(title: "Short", isActive: engine.currentSession == .shortBreak, activeColor: SessionType.shortBreak.color) {
-                engine.selectSessionType(.shortBreak)
-            }
-            TabButton(title: "Long", isActive: engine.currentSession == .longBreak, activeColor: SessionType.longBreak.color) {
-                engine.selectSessionType(.longBreak)
-            }
-        }
-    }
-
-    // MARK: - Footer Section
-
-    private var footerSection: some View {
-        VStack(spacing: 0) {
+            // Footer
             VStack(spacing: 2) {
-                FooterRow(title: "Statistics...", symbol: "chart.bar") {
+                MenuRow(title: "Statistics…", symbol: "chart.bar") {
                     openWindow(id: "stats")
                 }
-
-                FooterRow(title: "Settings...", symbol: "gearshape") {
+                MenuRow(title: "Settings…", symbol: "gearshape") {
                     openWindow(id: "settings")
                 }
 
-                FooterRow(title: "Quit PomoMenu", symbol: "power") {
+                Divider()
+                    .padding(.horizontal, 8)
+
+                MenuRow(title: "Quit PomoMenu", symbol: "power") {
                     NSApplication.shared.terminate(nil)
                 }
             }
-            .padding(6)
+            .padding(.vertical, 4)
         }
+        .frame(width: 280)
+    }
+
+    // MARK: - Mode Picker
+
+    private var modePicker: some View {
+        HStack(spacing: 0) {
+            ModeTab(title: "Pomodoro", isActive: engine.currentSession == .work) {
+                engine.selectSessionType(.work)
+            }
+            ModeTab(title: "Short", isActive: engine.currentSession == .shortBreak) {
+                engine.selectSessionType(.shortBreak)
+            }
+            ModeTab(title: "Long", isActive: engine.currentSession == .longBreak) {
+                engine.selectSessionType(.longBreak)
+            }
+        }
+        .background(Color.primary.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
     }
 }
 
-// MARK: - Footer Row
+// MARK: - Mode Tab (segmented control style)
 
-private struct FooterRow: View {
+private struct ModeTab: View {
+    let title: String
+    let isActive: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 11, weight: isActive ? .semibold : .regular))
+                .foregroundStyle(isActive ? .primary : .secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 5)
+                .background(
+                    isActive ? Color.primary.opacity(0.08) : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 5)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Menu Row (NSMenu-style full-width hover row)
+
+private struct MenuRow: View {
     let title: String
     let symbol: String
     let action: () -> Void
@@ -114,83 +126,22 @@ private struct FooterRow: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: symbol)
-                    .font(.system(size: 11))
-                    .frame(width: 14)
-                    .foregroundStyle(isHovered ? .primary : .secondary)
+                    .font(.system(size: 12))
+                    .frame(width: 16)
+                    .foregroundStyle(.secondary)
 
                 Text(title)
-                    .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 13))
 
                 Spacer()
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(isHovered ? Color.primary.opacity(0.06) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(isHovered ? Color.accentColor.opacity(0.8) : Color.clear, in: RoundedRectangle(cornerRadius: 4))
+            .foregroundStyle(isHovered ? .white : .primary)
         }
         .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
-        }
-    }
-}
-
-// MARK: - Tab Button
-
-private struct TabButton: View {
-    let title: String
-    let isActive: Bool
-    let activeColor: Color
-    let action: () -> Void
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 10, weight: isActive ? .semibold : .medium))
-                .foregroundStyle(isActive ? activeColor : .secondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(
-                    isActive ? activeColor.opacity(0.12) : (isHovered ? Color.primary.opacity(0.03) : Color.clear),
-                    in: RoundedRectangle(cornerRadius: 6)
-                )
-        }
-        .buttonStyle(.plain)
-        .onHover { hovering in
-            isHovered = hovering
-        }
-    }
-}
-
-// MARK: - Action Button
-
-private struct ActionButton: View {
-    let title: String
-    let symbol: String
-    let isPrimary: Bool
-    let accentColor: Color
-    let action: () -> Void
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: symbol)
-                    .font(.system(size: 10, weight: .semibold))
-                Text(title)
-                    .font(.system(size: 11, weight: .semibold))
-            }
-            .frame(width: 80, height: 24)
-            .foregroundStyle(isPrimary ? (isHovered ? .white : accentColor) : .secondary)
-            .background(
-                isPrimary
-                    ? (isHovered ? accentColor : accentColor.opacity(0.12))
-                    : (isHovered ? Color.primary.opacity(0.08) : Color.primary.opacity(0.03)),
-                in: RoundedRectangle(cornerRadius: 6)
-            )
-        }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 6)
         .onHover { hovering in
             isHovered = hovering
         }

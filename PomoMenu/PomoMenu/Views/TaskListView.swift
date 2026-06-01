@@ -27,7 +27,7 @@ struct TaskListView: View {
     @State private var isTasksExpanded = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 4) {
             // Header toggle button
             Button {
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
@@ -36,10 +36,8 @@ struct TaskListView: View {
             } label: {
                 HStack {
                     Text("Tasks")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.secondary)
-                        .textCase(.uppercase)
-                        .tracking(0.8)
 
                     if !tasks.isEmpty && !isTasksExpanded {
                         let incompleteCount = tasks.filter { !$0.isCompleted }.count
@@ -51,25 +49,24 @@ struct TaskListView: View {
                     Spacer()
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 9, weight: .semibold))
                         .foregroundStyle(.tertiary)
                         .rotationEffect(.degrees(isTasksExpanded ? 90 : 0))
                 }
+                .padding(.horizontal, 14)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .padding(.bottom, 2)
 
             if isTasksExpanded {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: 0) {
                     // Tasks items list
                     if tasks.isEmpty {
                         emptyState
                     } else {
-                        VStack(spacing: 6) {
-                            ForEach(tasks) { task in
-                                taskRow(for: task)
-                            }
+                        ForEach(tasks) { task in
+                            taskRow(for: task)
                         }
                     }
 
@@ -77,24 +74,7 @@ struct TaskListView: View {
                     if isAddingTask {
                         addTaskForm
                     } else {
-                        Button {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                                isAddingTask = true
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: "plus")
-                                    .font(.system(size: 11, weight: .bold))
-                                Text("Add Task")
-                                    .font(.system(size: 12, weight: .medium))
-                                Spacer()
-                            }
-                            .foregroundStyle(engine.currentSession.color)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 10)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
+                        addTaskButton
                     }
                 }
                 .transition(.opacity)
@@ -134,7 +114,7 @@ struct TaskListView: View {
             } label: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 14))
-                    .foregroundStyle(task.isCompleted ? .secondary : engine.currentSession.color)
+                    .foregroundStyle(task.isCompleted ? .secondary : (isActive ? engine.currentSession.color : .secondary))
             }
             .buttonStyle(.plain)
 
@@ -166,7 +146,7 @@ struct TaskListView: View {
                 } label: {
                     Text(task.title)
                         .font(.system(size: 13, weight: isActive ? .semibold : .regular))
-                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                        .foregroundStyle(task.isCompleted ? .secondary : (isActive ? engine.currentSession.color : .primary))
                         .strikethrough(task.isCompleted)
                         .lineLimit(1)
                         .multilineTextAlignment(.leading)
@@ -247,16 +227,9 @@ struct TaskListView: View {
                         }
                 }
             }
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(
-                Color.primary.opacity(0.04),
-                in: RoundedRectangle(cornerRadius: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
-            )
+            .padding(.horizontal, 4)
+            .padding(.vertical, 2)
+            .background(Color.clear)
 
             // Delete button (revealed dynamically on hover)
             Button {
@@ -270,19 +243,17 @@ struct TaskListView: View {
             .opacity(hoveredTaskId == task.id ? 1.0 : 0.0)
             .disabled(hoveredTaskId != task.id)
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
         .background(
-            isActive ? engine.currentSession.color.opacity(0.08) : Color.clear,
-            in: RoundedRectangle(cornerRadius: 6)
+            hoveredTaskId == task.id ? Color.accentColor.opacity(0.8) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 4)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .strokeBorder(isActive ? engine.currentSession.color.opacity(0.18) : Color.clear, lineWidth: 1)
-        )
+        .foregroundStyle(hoveredTaskId == task.id ? .white : .primary)
+        .padding(.horizontal, 6)
         .contentShape(Rectangle())
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
+            withAnimation(.easeInOut(duration: 0.12)) {
                 hoveredTaskId = hovering ? task.id : nil
             }
         }
@@ -342,20 +313,36 @@ struct TaskListView: View {
         }
     }
 
-    // MARK: - Add Task Form
+    private var addTaskButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isAddingTask = true
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "plus")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Add Task")
+                    .font(.system(size: 13))
+                Spacer()
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 6)
+    }
 
     private var addTaskForm: some View {
         VStack(spacing: 6) {
-            TextField("Task title...", text: $newTaskTitle)
-                .textFieldStyle(.plain)
+            TextField("Task title…", text: $newTaskTitle)
+                .textFieldStyle(.roundedBorder)
                 .font(.system(size: 12))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
-                .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+                .controlSize(.small)
                 .onSubmit(saveTask)
 
             HStack {
-                // Est stepper
                 HStack(spacing: 2) {
                     Text("Est:")
                         .font(.system(size: 10))
@@ -384,7 +371,6 @@ struct TaskListView: View {
 
                 Spacer()
 
-                // Cancel & Save buttons
                 HStack(spacing: 8) {
                     Button("Cancel") {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -394,22 +380,21 @@ struct TaskListView: View {
                         }
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 10))
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
 
                     Button("Save") {
                         saveTask()
                     }
                     .buttonStyle(.plain)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(engine.currentSession.color)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.primary)
                     .disabled(newTaskTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
-            .padding(.horizontal, 2)
         }
-        .padding(6)
-        .background(.secondary.opacity(0.04), in: RoundedRectangle(cornerRadius: 8))
+        .padding(.vertical, 6)
+        .padding(.horizontal, 14)
     }
 
     private func saveTask() {

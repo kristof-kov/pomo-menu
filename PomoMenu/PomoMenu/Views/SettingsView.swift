@@ -6,13 +6,13 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section(header: Text("Interval Durations").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+            Section("Interval Durations") {
                 DurationSettingRow(label: "Work Duration", symbol: "brain.head.profile", minutes: $settings.workDuration)
                 DurationSettingRow(label: "Short Break",  symbol: "cup.and.saucer",       minutes: $settings.shortBreakDuration)
                 DurationSettingRow(label: "Long Break",   symbol: "moon.zzz",             minutes: $settings.longBreakDuration)
             }
 
-            Section(header: Text("Preferences").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+            Section("Preferences") {
                 Toggle(isOn: $settings.autoStart) {
                     HStack(spacing: 6) {
                         Image(systemName: "arrow.trianglehead.clockwise")
@@ -39,7 +39,7 @@ struct SettingsView: View {
                 .pickerStyle(.menu)
             }
 
-            Section(header: Text("Sounds & Notifications").font(.system(size: 11, weight: .bold)).foregroundStyle(.secondary)) {
+            Section("Sounds & Notifications") {
                 Picker(selection: $settings.workSound) {
                     soundOptions
                 } label: {
