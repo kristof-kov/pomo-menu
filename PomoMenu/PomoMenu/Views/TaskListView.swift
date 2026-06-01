@@ -156,12 +156,8 @@ struct TaskListView: View {
 
             Spacer()
 
-            // Pomodoro progress (completed / estimated input fields)
-            HStack(spacing: 2) {
-                Text("(")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
-
+            // Pomodoro progress (completed / estimated input badge)
+            HStack(spacing: 3) {
                 // Completed/Done Count
                 if case .completed(let taskId) = activeCountField, taskId == task.id {
                     TextField("", text: $tempCountText)
@@ -192,8 +188,8 @@ struct TaskListView: View {
                 }
 
                 Text("/")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary.opacity(0.6))
 
                 // Estimated Count
                 if case .estimated(let taskId) = activeCountField, taskId == task.id {
@@ -223,11 +219,17 @@ struct TaskListView: View {
                     .buttonStyle(.plain)
                     .disabled(task.isCompleted)
                 }
-
-                Text(")")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(isActive ? SessionType.work.color : .secondary)
             }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(
+                Color.primary.opacity(0.04),
+                in: RoundedRectangle(cornerRadius: 4)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .strokeBorder(Color.primary.opacity(0.08), lineWidth: 1)
+            )
 
             // Delete button (revealed dynamically on hover)
             Button {
