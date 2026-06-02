@@ -56,9 +56,11 @@ struct PopoverRootView: View {
             // Footer
             VStack(spacing: 2) {
                 MenuRow(title: "Statistics…", symbol: "chart.bar") {
+                    NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: "stats")
                 }
                 MenuRow(title: "Settings…", symbol: "gearshape") {
+                    NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: "settings")
                 }
 

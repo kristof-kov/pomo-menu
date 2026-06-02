@@ -46,11 +46,13 @@ struct PomoMenuApp: App {
                 .modelContainer(sharedModelContainer)
         }
         .windowResizability(.contentSize)
+        .defaultPosition(.center)
 
         Window("Settings", id: "settings") {
             SettingsView(settings: settings)
         }
         .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
 
