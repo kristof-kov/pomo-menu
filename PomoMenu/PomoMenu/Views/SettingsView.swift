@@ -118,11 +118,13 @@ struct SettingsView: View {
 private struct DurationSettingRow: View {
     let label: String
     let symbol: String
+    /// Binding in **seconds**; display and editing is in minutes.
     @Binding var minutes: Int
 
-    private var displayMinutes: Int {
-        get { minutes / 60 }
-    }
+    @State private var isEditing = false
+    @State private var tempText  = ""
+
+    private var displayMinutes: Int { minutes / 60 }
 
     var body: some View {
         HStack {
@@ -141,15 +143,39 @@ private struct DurationSettingRow: View {
                     if minutes > 60 { minutes -= 60 }
                 }
 
-                Text("\(displayMinutes)m")
-                    .font(.system(size: 12, weight: .medium).monospacedDigit())
-                    .frame(width: 32, alignment: .center)
+                Group {
+                    if isEditing {
+                        TextField("", text: $tempText)
+                            .font(.system(size: 12, weight: .medium).monospacedDigit())
+                            .multilineTextAlignment(.center)
+                            .frame(width: 40)
+                            .textFieldStyle(.plain)
+                            .onSubmit { commitEdit() }
+                            .onExitCommand { isEditing = false }
+                    } else {
+                        Text("\(displayMinutes)m")
+                            .font(.system(size: 12, weight: .medium).monospacedDigit())
+                            .frame(width: 40, alignment: .center)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                tempText = "\(displayMinutes)"
+                                isEditing = true
+                            }
+                    }
+                }
+                .frame(width: 40)
 
                 DurationSettingButton(symbol: "plus") {
                     if minutes < 60 * 60 { minutes += 60 }
                 }
             }
         }
+    }
+
+    private func commitEdit() {
+        let clamped = max(1, min(60, Int(tempText) ?? displayMinutes))
+        minutes = clamped * 60
+        isEditing = false
     }
 }
 
